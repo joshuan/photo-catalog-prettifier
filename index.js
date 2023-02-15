@@ -1,15 +1,9 @@
 #!/usr/bin/env node
+
 import yargs from 'yargs/yargs';
-import { hideBin } from 'yargs/helpers';
-import main from './src/index.js';
+import * as commandGetData from './src/commands/getData.js';
 
-const argv = yargs(hideBin(process.argv)).argv;
-
-const path = argv._[0];
-
-if (!path) {
-    console.error('Please, set path to folder.');
-    process.exit(1);
-}
-
-main(path);
+yargs(process.argv.slice(2))
+    .command(commandGetData.command, commandGetData.description, commandGetData.builder, commandGetData.handler)
+    .demandCommand(1, 'Select a command.')
+    .parse();
