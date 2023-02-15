@@ -1,25 +1,28 @@
-const { exec } = require('child_process');
+import { execaSync } from 'execa';
 
 const TOOL_PATH = 'exiftool';
 
-function getData(OBJ_PATH) {
+export function getData(OBJ_PATH) {
     return new Promise((resolve, reject) => {
-        exec(`${TOOL_PATH} -json "${OBJ_PATH}"`, (error, stdout, stderr) => {
-            if (error) {
-                reject(new Error('Can not get data', { cause: error }));
+        try {
+            const result = execaSync(TOOL_PATH, ['-json', OBJ_PATH]);
 
-                return;
+            if (result.exitCode !== 0) {
+                throw new Error('Not zero code result', { cause: result });
             }
 
-            if (stderr) {
-                console.log(stderr);
-            }
+            let data = {};
 
-            resolve(stdout);
-        });
+            try {
+                data = JSON.parse(result.stdout);
+            } catch (err) {
+                throw new Error('Can not parse stdout', { cause: result });
+            }
+            
+            resolve({ data, stat: result.stderr.split('\n').map(x => x.trim()) });
+        } catch (error) {
+            console.log(error);
+            reject(new Error('Can not get data', { cause: error }));
+        }
     });
 }
-
-module.exports = {
-    getData,
-};

@@ -1,7 +1,7 @@
-const tool = require('./exiftool');
+import { getData } from './exiftool/index.js';
 
-module.exports = (path) => {
-    tool.getData(path)
+export default (path) => {
+    getData(path)
         .then(data => {
             console.log(data);
         })
