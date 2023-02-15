@@ -8,3 +8,7 @@ export const ROOT = path.resolve(path.dirname(__filename), '../..');
 export function resolve(file) {
     return path.resolve(ROOT, file);
 }
+
+export function getLowerExt(filename) {
+    return path.extname(filename).toLowerCase();
+}

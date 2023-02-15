@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { resolve } from '../path/index.js';
+import { resolve } from './path.js';
 
 const DATABASE = resolve('database');
 

@@ -1,3 +1,3 @@
-import { getData } from './getData.js';
+import { exec } from './exec.js';
 
-export { getData };
+export { exec };
