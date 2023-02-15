@@ -1,11 +1,9 @@
 import { getData } from './exiftool/index.js';
+import { saveData } from './database/index.js';
 
 export default (path) => {
     getData(path)
-        .then(data => {
-            console.log(data);
-        })
-        .catch(err => {
-            console.error(err);
-        });
+        .then(data => saveData('fullData', data))
+        .then(() => console.log('✅'))
+        .catch(err => console.error(err));
 };
