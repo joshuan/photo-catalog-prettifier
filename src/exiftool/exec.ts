@@ -1,7 +1,7 @@
 import { execaSync } from 'execa';
 import { TOOL_PATH } from './config.js';
 
-export function exec(OBJ_PATH, options = []) {
+export function exec(OBJ_PATH: string, options:string[] = []) {
     return new Promise((resolve, reject) => {
         try {
             const result = execaSync(TOOL_PATH, ['-json', ...options, OBJ_PATH]);

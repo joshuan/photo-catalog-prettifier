@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import yargs from 'yargs/yargs';
-import * as commandGetData from './src/commands/getData/index.js';
-import * as saveOriginalNameToComment from './src/commands/saveOriginalNameToComment/index.js';
+import yargs from 'yargs';
+import * as commandGetData from './commands/getData';
+import * as saveOriginalNameToComment from './commands/saveOriginalNameToComment';
 
 yargs(process.argv.slice(2))
     .command(commandGetData.command, commandGetData.description, commandGetData.builder, commandGetData.handler)

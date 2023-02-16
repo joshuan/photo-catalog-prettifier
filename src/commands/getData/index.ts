@@ -1,10 +1,10 @@
-import { exec } from '../../exiftool/index.js';
-import { saveData } from '../../utils/database.js';
+import { exec } from '../../exiftool';
+import { saveData } from '../../utils/database';
 
 export const command = 'getData <path>';
 export const description = 'get data from path folder';
 
-export function builder(yargs) {
+export function builder(yargs: any) {
     return yargs
         .positional('path', {
             desc: 'Path to folder with photos',
@@ -12,7 +12,7 @@ export function builder(yargs) {
         });
 }
 
-export async function handler(argv) {
+export async function handler(argv: any) {
     const data = await exec(argv.path)
         
     await saveData('fullData', data);

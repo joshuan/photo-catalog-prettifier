@@ -1,4 +1,6 @@
-function parseDate(src) {
+import { IExifData } from "../../../exiftool/types";
+
+function parseDate(src: string) {
     try {
         let [ datetime, zone = '00:00' ] = src.split('+'); 
         let [ date, time ] = datetime.split(' ');
@@ -22,15 +24,10 @@ function parseDate(src) {
     }
 }
 
-function checkDateString(date) {
-    return date && !date.includes('0000:00:00') ? date : undefined;
-}
+export function getDateFromExif(item: IExifData): Date | undefined {
+    if (!item.DateTimeOriginal) {
+        return undefined;
+    }
 
-export function getDateFromMeta(item) {
-    const data = checkDateString(item.CreateDate) // Время фотки без зоны
-        // || checkDateString(item.DateTimeCreated) // Время создания файла с зоной
-        // || checkDateString(item.FileModifyDate) // Время модификации с зоной
-    ;
-
-    return data ? parseDate(data) : undefined;
+    return parseDate(item.DateTimeOriginal);
 }

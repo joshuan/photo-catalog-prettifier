@@ -2,10 +2,10 @@
   "name": "photo-catalog-prettifier",
   "version": "1.0.0",
   "description": "",
-  "bin": "index.js",
+  "bin": "build/index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -p ."
   },
   "keywords": [],
   "author": "",
@@ -13,5 +13,10 @@
   "dependencies": {
     "execa": "7.0.0",
     "yargs": "17.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "18.13.0",
+    "@types/yargs": "17.0.22",
+    "typescript": "4.9.5"
   }
 }
