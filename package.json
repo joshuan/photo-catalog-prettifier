@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "bin": "build/index.js",
+  "main": "build/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "start": "node build/index.js"
   },
   "keywords": [],
   "author": "",

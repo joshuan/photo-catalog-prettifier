@@ -1,7 +1,7 @@
 import { execaSync } from 'execa';
 import { TOOL_PATH } from './config.js';
 
-export function exec(OBJ_PATH: string, options:string[] = []) {
+export function exec<T extends {}>(OBJ_PATH: string, options:string[] = []): Promise<{ data: T; stat: string[] }> {
     return new Promise((resolve, reject) => {
         try {
             const result = execaSync(TOOL_PATH, ['-json', ...options, OBJ_PATH]);
@@ -10,10 +10,10 @@ export function exec(OBJ_PATH: string, options:string[] = []) {
                 throw new Error('Not zero code result', { cause: result });
             }
 
-            let data = {};
+            let data = {} as T;
 
             try {
-                data = JSON.parse(result.stdout);
+                data = JSON.parse(result.stdout) as T;
             } catch (err) {
                 throw new Error('Can not parse stdout', { cause: result });
             }

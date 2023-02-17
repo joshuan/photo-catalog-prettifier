@@ -1,38 +1,23 @@
 import { IExifData } from "../../../exiftool/types";
 
-function parseDate(src: string): Date | undefined {
-    try {
-        let [ datetime, zone = '00:00' ] = src.split('+'); 
-        let [ date, time ] = datetime.split(' ');
-        let [ year = 0, month = 0, day = 0 ] = date.split(':');
-        let [ hour = 0, min = 0, sec = 0 ] = time.split(':');
+const DATE_RE = /^(\d{4})\:(\d{2})\:(\d{2})\s+(\d{2})\:(\d{2})\:(\d{2})$/;
 
-        const dateString = `${year}-${month}-${day}T${hour}:${min}:${sec}+${zone.replace(':', '')}`;
+function parseDate(date?: string, zone?: string) {
+    const test = DATE_RE.exec(date || '');
 
-        return new Date(dateString);
-    } catch (err) {
-        throw new Error('Unknown date format', { cause: {
-            src,
-            item,
-            err,
-            datetime, zone,
-            date, time,
-            year, month, day,
-            hour, min, sec,
-            dateString,
-        } });
+    if (zone) {
+        throw new Error('Wow!!! We have timezone from EXIF!', { cause: { date, zone } });
+    }
+
+    if (test !== null) {
+        return new Date(
+            Date.parse(`${test[1]}-${test[2]}-${test[3]}T${test[4]}:${test[5]}:${test[6]}`),
+        );
     }
 }
 
-function checkDateString(date?: string): string | undefined {
-    return date && !date.includes('0000:00:00') ? date : undefined;
-}
-
 export function getDateFromMeta(item: IExifData): Date | undefined {
-    const data = checkDateString(item.CreateDate) // Время фотки без зоны
-        // || checkDateString(item.DateTimeCreated) // Время создания файла с зоной
-        // || checkDateString(item.FileModifyDate) // Время модификации с зоной
-    ;
-
-    return data ? parseDate(data) : undefined;
+    return parseDate(item.DateTimeCreated)
+        || parseDate(item.FileModifyDate)
+        || undefined;
 }

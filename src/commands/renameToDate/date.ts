@@ -1,8 +1,9 @@
+import { IExifData } from '../../exiftool/types.js';
 import { getDateFromExif } from './sources/exif.js';
 import { getDateFromFilename } from './sources/filename.js';
 import { getDateFromMeta } from './sources/meta.js';
 
-export function calculateDate(item) {
+export function calculateDate(item: IExifData) {
     const date = getDateFromExif(item) ||
         getDateFromFilename(item) || 
         getDateFromMeta(item);
@@ -18,11 +19,11 @@ export function calculateDate(item) {
     return date;
 }
 
-function lp(n) {
+function lp(n: number): string {
     return n < 10 ? `0${n}` : `${n}`;
 }
 
-export function buildFilenameDateString(date, add) {
+export function buildFilenameDateString(date: Date, add: number) {
     return [
         [
             date.getFullYear(),

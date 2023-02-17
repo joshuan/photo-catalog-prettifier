@@ -1,12 +1,16 @@
-import { getData } from '../../exiftool/index.js';
+import { exec } from '../../exiftool/index.js';
 import { seriesPromise } from '../../utils/promise.js';
 import { getLowerExt } from '../../utils/path.js';
 import { calculateDate, buildFilenameDateString } from './date.js';
+import { IExifData } from '../../exiftool/types.js';
+import { Arguments, Argv } from 'yargs';
 
 export const command = 'saveOriginalNameToComment <path>';
 export const description = 'Save original file name to comment in all files from path';
 
-export function builder(yargs) {
+interface ReanemToDateArguments { path: string; };
+
+export function builder(yargs: Argv) {
     return yargs
         .positional('path', {
             desc: 'Path to folder with photos',
@@ -14,7 +18,7 @@ export function builder(yargs) {
         });
 }
 
-function createFilename(date, names, add = 0) {
+function createFilename(date: Date, names: Set<string>, add = 0): string {
     const result = buildFilenameDateString(date, add);
 
     if (names.has(result)) {
@@ -26,7 +30,7 @@ function createFilename(date, names, add = 0) {
     return result;
 }
 
-function updateFilename(item, names) {
+function updateFilename(item: IExifData, names: Set<string>) {
     const date = calculateDate(item);
     const ext = getLowerExt(item.FileName);
 
@@ -46,7 +50,7 @@ function updateFilename(item, names) {
     };
 }
 
-function logList(list) {
+function logList<T extends { dest: string; }>(list: T[]): T[] {
     list.sort((a, b) => a.dest > b.dest ? 1 : -1)
 
     console.table(list);
@@ -54,14 +58,14 @@ function logList(list) {
     return list;
 }
 
-function renameFiles({ src, dest }) {
-    // console.log('Rename %s to %s', src, dest);
+function renameFiles({ src, dest }: { src: string; dest: string }) {
+    console.log('Rename %s to %s', src, dest);
 }
 
-export function handler(argv) {
-    const names = new Set();
+export function handler(argv: Arguments<ReanemToDateArguments>) {
+    const names = new Set<string>();
 
-    getData(argv.path)
+    exec<IExifData[]>(argv.path)
         .then(({ data }) => data.map(item => updateFilename(item, names)))
         .then((list) => logList(list))
         .then((list) => seriesPromise(list, renameFiles))
