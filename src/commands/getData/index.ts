@@ -1,5 +1,5 @@
-import { exec } from '../../exiftool';
-import { saveData } from '../../utils/database';
+import { exec } from '../../exiftool/index.js';
+import { saveData } from '../../utils/database.js';
 
 export const command = 'getData <path>';
 export const description = 'get data from path folder';

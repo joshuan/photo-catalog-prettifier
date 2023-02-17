@@ -1,5 +1,7 @@
-export function seriesPromise<T>(list: T[], fn: (item: T) => any) {
-    return list.reduce((p, item: T) => {
-        return p.then(() => fn(item));
-     }, Promise.resolve());
+export function seriesPromise<T, U>(list: T[], fn: (item: T) => Promise<U>): Promise<U[]> {
+    const results: U[] = [];
+
+    return list.reduce((next, item: T) => next.then(
+        () => fn(item).then((res) => { results.push(res) })
+    ), Promise.resolve()).then(() => results);
 };

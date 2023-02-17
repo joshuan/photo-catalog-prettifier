@@ -12,15 +12,17 @@ export function exec<T extends {}>(OBJ_PATH: string, options:string[] = []): Pro
 
             let data = {} as T;
 
-            try {
-                data = JSON.parse(result.stdout) as T;
-            } catch (err) {
-                throw new Error('Can not parse stdout', { cause: result });
+            if (result.stdout !== '') {
+                try {
+                    data = JSON.parse(result.stdout) as T;
+                } catch (err) {
+                    throw new Error('Can not parse stdout', { cause: result });
+                }
             }
             
             resolve({ data, stat: result.stderr.split('\n').map(x => x.trim()) });
         } catch (error) {
-            reject(new Error('Can not get data', { cause: error }));
+            reject(new Error('Can not execute exiftool', { cause: error }));
         }
     });
 }
