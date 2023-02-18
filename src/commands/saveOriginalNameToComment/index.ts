@@ -46,7 +46,13 @@ function getFileNamesAndComments(path: string): Promise<INameAndComment[]> {
 }
 
 function filterAlreadyUpdated(item: INameAndComment): boolean {
-    return !item.Comment.includes('Original filename:');
+    const isAlreadySaved = item.Comment.includes('Original filename:');
+
+    if (isAlreadySaved) {
+        console.warn(`Skip file ${item.FileName} because it already has the original name saved: "${item.Comment}"`);
+    }
+
+    return !isAlreadySaved;
 }
 
 function buildComment(item: INameAndComment): INameAndComment {

@@ -7,7 +7,9 @@ import * as renameToDate from './commands/renameToDate/index.js';
 
 yargs(process.argv.slice(2))
     .command(commandGetData)
+    // @ts-expect-error Argument of type ...index is not assignable to parameter of type 'CommandModule<{}, any>'.
     .command(saveOriginalNameToComment)
+    // @ts-expect-error Argument of type ...index is not assignable to parameter of type 'CommandModule<{}, any>'.
     .command(renameToDate)
     .demandCommand(1, 'Select a command.')
     .parse();

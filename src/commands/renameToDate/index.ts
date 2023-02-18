@@ -1,9 +1,10 @@
+import { Argv } from 'yargs';
 import { exec } from '../../exiftool/index.js';
 import { seriesPromise } from '../../utils/promise.js';
 import { getLowerExt } from '../../utils/path.js';
 import { calculateDate, buildFilenameDateString } from './date.js';
 import { IExifData } from '../../exiftool/types.js';
-import { Argv } from 'yargs';
+import { TimeZone } from '../../utils/date.js';
 
 export const command = 'renameToDate <path>';
 export const description = 'Rename file to calculated date';
@@ -20,7 +21,7 @@ export function builder(argv: Argv): Argv<ReanemToDateArguments> {
 }
 
 function createFilename(date: Date, names: Set<string>, add = 0): string {
-    const result = buildFilenameDateString(date, add);
+    const result = buildFilenameDateString(date, add, TimeZone.Yekaterinburg);
 
     if (names.has(result)) {
         return createFilename(date, names, add+1);
@@ -38,29 +39,30 @@ function updateFilename(item: IExifData, names: Set<string>) {
     return {
         src: item.FileName,
         dest: createFilename(date, names) + ext,
-        // meta: {
+        meta: {
             date,
             offset: date.getTimezoneOffset(),
             DateTimeOriginal: item.DateTimeOriginal,
-            // OffsetTimeOriginal: item.OffsetTimeOriginal,
+            OffsetTimeOriginal: item.OffsetTimeOriginal,
             CreateDate: item.CreateDate,
-            // DateTimeCreated: item.DateTimeCreated,
+            DateTimeCreated: item.DateTimeCreated,
             FileName: item.FileName,
             FileModifyDate: item.FileModifyDate,
-        // },
+        },
     };
 }
 
 function logList<T extends { dest: string; }>(list: T[]): T[] {
     list.sort((a, b) => a.dest > b.dest ? 1 : -1)
 
-    console.table(list);
+    console.log(list);
 
     return list;
 }
 
-function renameFiles({ src, dest }: { src: string; dest: string }) {
+function renameFiles({ src, dest }: { src: string; dest: string }): Promise<void> {
     console.log('Rename %s to %s', src, dest);
+    return Promise.resolve();
 }
 
 export function handler(args: ReanemToDateArguments): Promise<void> {
