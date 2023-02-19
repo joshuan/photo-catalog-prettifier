@@ -4,6 +4,7 @@ import { debugUtil } from '../utils/debug.js';
 export enum TimeZone {
     UTC = 'UTC',
     Yekaterinburg = 'Asia/Yekaterinburg',
+    Samara = 'Europe/Samara',
     Moscow = 'Europe/Moscow',
 }
 
@@ -42,7 +43,7 @@ export class ColonDate {
     formatFileName(timeZone: TimeZone, addSecond: number = 0) {
         return this.clone()
             .plus({ second: addSecond })
-            .setZone(TimeZone.Yekaterinburg)
+            .setZone(TimeZone.Moscow)
             .toFormat(ColonDate.FILENAME_FORMAT);
     }
 

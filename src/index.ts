@@ -4,6 +4,7 @@ import yargs from 'yargs';
 import * as commandGetData from './commands/getData/index.js';
 import * as saveOriginalNameToComment from './commands/saveOriginalNameToComment/index.js';
 import * as renameToDate from './commands/renameToDate/index.js';
+import * as groupLivePhotos from './commands/groupLivePhotos/index.js';
 
 yargs(process.argv.slice(2))
     .command(commandGetData)
@@ -11,5 +12,7 @@ yargs(process.argv.slice(2))
     .command(saveOriginalNameToComment)
     // @ts-expect-error Argument of type ...index is not assignable to parameter of type 'CommandModule<{}, any>'.
     .command(renameToDate)
+    // @ts-expect-error Argument of type ...index is not assignable to parameter of type 'CommandModule<{}, any>'.
+    .command(groupLivePhotos)
     .demandCommand(1, 'Select a command.')
     .parse();

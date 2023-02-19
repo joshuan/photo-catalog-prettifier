@@ -28,8 +28,8 @@ function lowerExt(filename: string) {
     return `${originalBase}${originalExt.toLowerCase()}`;
 }
 
-export function buildDestination(item: IExifData): { src: string; dest: string; } {
-    const date = buildDate(item);
+export function buildDestination(item: IExifData, defaultPhotoOffset?: string): { src: string; dest: string; } {
+    const date = buildDate(item, defaultPhotoOffset);
 
     if (!date) {
         return {

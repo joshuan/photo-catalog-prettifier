@@ -21,6 +21,10 @@ export function builder(argv: Argv): Argv<RenameToDateArguments> {
             type: 'string',
             demandOption: 'Folder is required parameter',
         })
+        .option('defaultPhotoOffset', {
+            desc: 'Offset for photo by default (example: +05:00)',
+            type: 'string',
+        })
         .option('dryRun', {
             type: 'boolean',
             default: false,
@@ -44,16 +48,20 @@ function renameFilesBuilder(root: string, dryRun: boolean) {
             return `[DRY-RUN] Rename "${src}" to "${dest}"`;
         }
 
-        await rename(root, src, dest);
+        if (src !== dest) {
+            await rename(root, src, dest);
 
-        return `${src} was renamed to: "${dest}"`;
+            return `${src} was renamed to: "${dest}"`;
+        }
+
+        return '${src} already right name';
     }
 }
 
 export async function handler(args: RenameToDateArguments): Promise<void> {
     const { data } = await exec<IExifData[]>(args.path);
 
-    const list = data.map(buildDestination);
+    const list = data.map((item) => buildDestination(item, '+03:00'));
 
     await logList(list);
     console.log(`Found ${list.length} media files.`);

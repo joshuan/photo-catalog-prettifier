@@ -7,12 +7,12 @@ import { getDateFromFilename } from './sources/filename.js';
 
 const debug = debugUtil('renameToDate');
 
-export function buildDate(item: IExifData): ColonDate | undefined {
+export function buildDate(item: IExifData, defaultPhotoOffset?: string): ColonDate | undefined {
     debug('Parse date for', item.FileName);
 
     try {
         const date =
-            getDateFromExif(item) ||
+            getDateFromExif(item, defaultPhotoOffset) ||
             getDateFromGps(item) ||
             getDateFromFilename(item);
 
