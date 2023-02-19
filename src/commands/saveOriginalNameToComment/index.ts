@@ -63,7 +63,7 @@ function buildComment(item: INameAndComment): INameAndComment {
 }
 
 function updateComment(item: INameAndComment): Promise<string> {
-    return exec<INameAndComment[]>(item.SourceFile, [`-Comment=${item.Comment}`])
+    return exec<INameAndComment[]>(item.SourceFile, [`-Comment=${item.Comment}`, '-overwrite_original'])
         .then(() => `${item.FileName} comment update to: "${item.Comment}"`)
 }
 

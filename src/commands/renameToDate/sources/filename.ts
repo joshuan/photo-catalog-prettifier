@@ -1,18 +1,40 @@
-import debugUtil from 'debug';
-import { IExifData } from "../../../exiftool/types";
+import { IExifData } from '../../../exiftool/types.js';
+import { ColonDate, TimeZone } from '../../../utils/date.js';
+import { debugUtil } from '../../../utils/debug.js';
 
 const debug = debugUtil('renameToDate:filename');
 
-export function getDateFromFilename(item: IExifData): Date | undefined {
-    debug('Parse date', item.FileName);
+const DATE_LARGE_FILENAME_RE = /^(\d{4})(\d{2})(\d{2})\_(\d{2})(\d{2})(\d{2})\./;
 
-    const test = /^(\d{4})(\d{2})(\d{2})\_(\d{2})(\d{2})(\d{2})\./.exec(item.FileName);
+function getLargeFileName(item: IExifData): ColonDate | undefined {
+    const test = DATE_LARGE_FILENAME_RE.exec(item.FileName);
 
-    if (test !== null) {
-        return new Date(
-            Date.parse(`${test[1]}-${test[2]}-${test[3]}T${test[4]}:${test[5]}:${test[6]}Z`),
-        );
+    if (test === null) {
+        return undefined;
     }
 
-    return undefined;
+    const colonDate = `${test[1]}:${test[2]}:${test[3]} ${test[4]}:${test[5]}:${test[6]}`;
+
+    return new ColonDate(colonDate, TimeZone.Yekaterinburg);
+}
+
+const DATE_UNIX_FILENAME_RE = /^(\d{16})\./;
+
+function getUnixFileName(item: IExifData): ColonDate | undefined {
+    const test = DATE_UNIX_FILENAME_RE.exec(item.FileName);
+
+    if (test === null) {
+        return undefined;
+    }
+
+    return new ColonDate(Math.ceil(parseInt(test[1], 10) / 1000), TimeZone.Yekaterinburg);
+}
+
+export function getDateFromFilename(item: IExifData): ColonDate | undefined {
+    debug('Parse date', item.FileName);
+
+    return getLargeFileName(item)
+        || getUnixFileName(item)
+        || undefined
+    ;
 }

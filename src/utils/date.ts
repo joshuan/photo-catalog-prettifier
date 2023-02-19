@@ -1,15 +1,56 @@
+import { DateTime } from 'luxon';
+import { debugUtil } from '../utils/debug.js';
+
 export enum TimeZone {
+    UTC = 'UTC',
     Yekaterinburg = 'Asia/Yekaterinburg',
     Moscow = 'Europe/Moscow',
 }
 
-export function trimZone(src: Date, timeZone: TimeZone): Date {
-    const str = src.toLocaleString('ru-RU', { timeZone });
-    const test = /^(\d{2})\.(\d{2})\.(\d{4})\,\s(\d{2}):(\d{2}):(\d{2})$/.exec(str);
+const debug = debugUtil('colonDate');
 
-    if (test === null) {
-        throw new Error('Broken date formatting', { cause: { src, timeZone, str, test } });
+export class ColonDate {
+    private static COLON_FORMAT = 'yyyy:MM:dd HH:mm:ss';
+    private static FILENAME_FORMAT = 'yyyy-MM-dd_HH-mm-ss';
+
+    public static validate(str: string): boolean {
+        return DateTime.fromFormat(str, ColonDate.COLON_FORMAT).isValid;
     }
 
-    return new Date(Date.parse(`${test[3]}-${test[2]}-${test[1]}T${test[4]}:${test[5]}:${test[6]}Z`));
-} 
+    private datetime: DateTime;
+
+    constructor(src: string | number, public zone: TimeZone = TimeZone.UTC) {
+        if (typeof src === 'string') {
+            this.datetime = DateTime.fromFormat(src, ColonDate.COLON_FORMAT, { zone });
+        } else if (typeof src === 'number') {
+            this.datetime = DateTime.fromMillis(src, { zone });
+        } else {
+            throw new Error(`Unknown format date "${src}".`);
+        }
+
+        debug('Create datetime', src, zone, this.datetime.toString());
+    }
+
+    private lp(n: number): string {
+        return n < 10 ? `0${n}` : `${n}`;
+    }
+
+    clone() {
+        return DateTime.fromSQL(this.datetime.toSQL());
+    }
+
+    formatFileName(timeZone: TimeZone, addSecond: number = 0) {
+        return this.clone()
+            .plus({ second: addSecond })
+            .setZone(TimeZone.Yekaterinburg)
+            .toFormat(ColonDate.FILENAME_FORMAT);
+    }
+
+    toJSON(): string {
+        return this.datetime.toJSON();
+    }
+
+    toString(): string {
+        return this.clone().setZone(TimeZone.UTC).toString();
+    }
+}
