@@ -5,11 +5,11 @@ import { ColonDate, TimeZone } from '../../utils/date.js';
 
 const names = new Set<string>();
 
-function createFilename(date: ColonDate, add = 0): string {
-    const result = date.formatFileName(TimeZone.Yekaterinburg, add);
+function createFilename(date: ColonDate, ext: string, add = 0): string {
+    const result = date.formatFileName(TimeZone.Yekaterinburg, add) + ext;
 
     if (names.has(result)) {
-        return createFilename(date, add+1);
+        return createFilename(date, ext, add+1);
     }
 
     names.add(result);
@@ -28,7 +28,7 @@ function lowerExt(filename: string) {
     return `${originalBase}${originalExt.toLowerCase()}`;
 }
 
-export function buildDestination(item: IExifData) {
+export function buildDestination(item: IExifData): { src: string; dest: string; } {
     const date = buildDate(item);
 
     if (!date) {
@@ -38,7 +38,7 @@ export function buildDestination(item: IExifData) {
         };
     }
 
-    const destination = createFilename(date) + getLowerExt(item.FileName);
+    const destination = createFilename(date, getLowerExt(item.FileName));
 
     return {
         src: item.FileName,

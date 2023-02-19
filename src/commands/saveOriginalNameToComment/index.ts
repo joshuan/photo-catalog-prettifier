@@ -8,7 +8,7 @@ export const description = 'Save original file name to comment in all files from
 interface ISaveOriginNameToCommentArguments {
     path: string;
     dryRun: boolean;
-};
+}
 
 export function builder(argv: Argv): Argv<ISaveOriginNameToCommentArguments> {
     return argv
@@ -20,7 +20,8 @@ export function builder(argv: Argv): Argv<ISaveOriginNameToCommentArguments> {
         .option('dryRun', {
             type: 'boolean',
             default: false,
-        });
+        })
+    ;
 }
 
 interface INameAndComment {
@@ -62,22 +63,26 @@ function buildComment(item: INameAndComment): INameAndComment {
     };
 }
 
-function updateComment(item: INameAndComment): Promise<string> {
-    return exec<INameAndComment[]>(item.SourceFile, [`-Comment=${item.Comment}`, '-overwrite_original'])
-        .then(() => `${item.FileName} comment update to: "${item.Comment}"`)
+function updateCommentBuilder(dryRun: boolean) {
+    return async function updateComment(item: INameAndComment): Promise<string> {
+        if (dryRun) {
+            return `[DRY-RUN] ${item.FileName} comment will be update to: "${item.Comment}"`;
+        }
+
+        await exec<INameAndComment[]>(item.SourceFile, [`-Comment=${item.Comment}`, '-overwrite_original']);
+
+        return `${item.FileName} comment update to: "${item.Comment}"`;
+    }
 }
 
-function dryRunUpdateComment(item: INameAndComment): Promise<string> {
-    return Promise.resolve(`[DRY-RUN] ${item.FileName} comment will be update to: "${item.Comment}"`);
+export async function handler(argv: ISaveOriginNameToCommentArguments) {
+    const data = await getFileNamesAndComments(argv.path);
+
+    const list = data
+        .filter(filterAlreadyUpdated)
+        .map(buildComment);
+
+    const result = await seriesPromise(list, updateCommentBuilder(argv.dryRun));
+
+    console.log('✅', result);
 }
-
-export function handler(argv: ISaveOriginNameToCommentArguments) {
-    const names = new Set();
-
-    getFileNamesAndComments(argv.path)
-        .then(list => list.filter(filterAlreadyUpdated))
-        .then(list => list.map(buildComment))
-        .then((list) => seriesPromise(list, argv.dryRun ? dryRunUpdateComment : updateComment))
-        .then((data) => console.log('✅', data))
-        .catch(err => console.error(err));
-};

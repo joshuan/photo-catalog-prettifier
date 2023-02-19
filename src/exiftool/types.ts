@@ -1,5 +1,6 @@
 export interface IExifData {
     FileName: string;
+    Directory?: string;
     ModifyDate?: string;            // IFD0	    (called DateTime by the EXIF spec.)
     DateTimeOriginal?: string;      // ExifIFD	(date/time when original image was taken)
     CreateDate?: string;	        // ExifIFD	(called DateTimeDigitized by the EXIF spec.)

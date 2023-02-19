@@ -9,13 +9,14 @@ export function builder(yargs: any) {
         .positional('path', {
             desc: 'Path to folder with photos',
             type: 'string',
-        });
+        })
+    ;
 }
 
 export async function handler(argv: any) {
     const data = await exec(argv.path)
-        
+
     await saveData('fullData', data);
 
     console.log('Data was saved to database/fullData.json');
-};
+}
