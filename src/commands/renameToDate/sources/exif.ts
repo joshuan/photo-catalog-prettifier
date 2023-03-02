@@ -3,14 +3,17 @@ import { ColonDate, TimeZone } from '../../../utils/date.js';
 import { debugUtil } from '../../../utils/debug.js';
 
 const debug = debugUtil('renameToDate:exif');
-const DATE_RE = /^(\d{4})\:(\d{2})\:(\d{2})\s+(\d{2})\:(\d{2})\:(\d{2})$/;
 const BROKEN_DATE = '0000:00:00 00:00:00';
 
 const zoneMap: Record<string, TimeZone> = {
     '+00:00': TimeZone.UTC,
+    '+01:00': TimeZone.Belgrade,
+    '+02:00': TimeZone.Kiev,
     '+03:00': TimeZone.Moscow,
     '+04:00': TimeZone.Samara,
     '+05:00': TimeZone.Yekaterinburg,
+    '+06:00': TimeZone.Almaty,
+    '+07:00': TimeZone.Novosibirsk,
 };
 
 function parseZone(zone?: string): TimeZone {

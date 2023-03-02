@@ -24,6 +24,7 @@ export function builder(argv: Argv): Argv<RenameToDateArguments> {
         .option('defaultPhotoOffset', {
             desc: 'Offset for photo by default (example: +05:00)',
             type: 'string',
+            default: '+00:00',
         })
         .option('dryRun', {
             type: 'boolean',
@@ -68,5 +69,6 @@ export async function handler(args: RenameToDateArguments): Promise<void> {
 
     const result = await seriesPromise(list, renameFilesBuilder(args.path, args.dryRun));
 
-    console.log('✅', result);
+    console.log('✅');
+    console.log(result.join('\n'));
 }

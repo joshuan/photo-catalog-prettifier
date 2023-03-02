@@ -9,6 +9,7 @@ export const description = 'Group live photos and videos by as name';
 
 interface IGroupLivePhotosArguments {
     path: string;
+    suffix: string;
     dryRun: boolean;
 }
 
@@ -19,11 +20,16 @@ export function builder(argv: Argv): Argv<IGroupLivePhotosArguments> {
             type: 'string',
             demandOption: 'Folder is required parameter',
         })
+        .options('suffix', {
+            desc: 'Suffix for video file',
+            type: 'string',
+            default: '_live',
+        })
         .option('dryRun', {
             type: 'boolean',
             default: false,
         })
-        ;
+    ;
 }
 
 interface IRawPartData {
@@ -88,11 +94,11 @@ function getPair(items: IPartData[]): { image?: IPartData; video?: IPartData; } 
     throw new Error('Pair is not from image and video', { cause: items });
 }
 
-function calcRename(imageFilename: string, videoFilename: string): string {
+function calcRename(imageFilename: string, videoFilename: string, suffix: string): string {
     const imageExt = path.extname(imageFilename);
     const imageBase = path.basename(imageFilename, imageExt);
 
-    return imageBase + path.extname(videoFilename);
+    return imageBase + suffix + path.extname(videoFilename);
 }
 
 // Группируем live photos из 2 файлов, по общему MediaGroupUUID - они должны иметь одинаковое имя.
@@ -113,7 +119,7 @@ export async function handler(argv: IGroupLivePhotosArguments) {
         }
 
         const src = video.FileName;
-        const dest = calcRename(image.FileName, video.FileName);
+        const dest = calcRename(image.FileName, video.FileName, argv.suffix);
 
         if (src !== dest) {
             console.log('-', { src, dest });

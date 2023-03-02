@@ -6,6 +6,10 @@ export enum TimeZone {
     Yekaterinburg = 'Asia/Yekaterinburg',
     Samara = 'Europe/Samara',
     Moscow = 'Europe/Moscow',
+    Belgrade = 'Europe/Belgrade', // +1
+    Kiev = 'Europe/Kiev', // +2
+    Almaty = 'Asia/Almaty', // +6
+    Novosibirsk = 'Asia/Novosibirsk', // +7
 }
 
 const debug = debugUtil('colonDate');

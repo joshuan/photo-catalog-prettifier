@@ -7,3 +7,11 @@ export async function rename(ROOT: string, src: string, dest: string): Promise<v
         path.join(ROOT, dest),
     );
 }
+
+export async function deleteFile(ROOT: string, file: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        fs.unlink(path.join(ROOT, file), (err) => {
+            err ? reject(err) : resolve();
+        });
+    });
+}

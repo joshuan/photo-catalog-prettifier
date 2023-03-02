@@ -18,6 +18,21 @@ function getLargeFileName(item: IExifData): ColonDate | undefined {
     return new ColonDate(colonDate, TimeZone.Yekaterinburg);
 }
 
+// 2014-11-18 11.38.49
+const DATE_LARGE2_FILENAME_RE = /^(\d{4})\-(\d{2})\-(\d{2})\s{1}(\d{2})\.(\d{2})\.(\d{2})/;
+
+function getLarge2FileName(item: IExifData): ColonDate | undefined {
+    const test = DATE_LARGE2_FILENAME_RE.exec(item.FileName);
+
+    if (test === null) {
+        return undefined;
+    }
+
+    const colonDate = `${test[1]}:${test[2]}:${test[3]} ${test[4]}:${test[5]}:${test[6]}`;
+
+    return new ColonDate(colonDate, TimeZone.Yekaterinburg);
+}
+
 const DATE_UNIX_FILENAME_RE = /^(\d{16})\./;
 
 function getUnixFileName(item: IExifData): ColonDate | undefined {
@@ -34,6 +49,7 @@ export function getDateFromFilename(item: IExifData): ColonDate | undefined {
     debug('Parse date', item.FileName);
 
     return getLargeFileName(item)
+        || getLarge2FileName(item)
         || getUnixFileName(item)
         || undefined
     ;
