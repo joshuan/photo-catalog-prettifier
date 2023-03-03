@@ -101,6 +101,20 @@ function calcRename(imageFilename: string, videoFilename: string, suffix: string
     return imageBase + suffix + path.extname(videoFilename);
 }
 
+function checkGroup(items: IPartData[]) {
+    if (items.length !== 2) {
+        return false;
+    }
+
+    if (isVideo(items[0]) && isImage(items[1])) {
+        return true;
+    } else if (isImage(items[0]) && isVideo(items[1])) {
+        return true;
+    }
+
+    return false;
+}
+
 // Группируем live photos из 2 файлов, по общему MediaGroupUUID - они должны иметь одинаковое имя.
 export async function handler(argv: IGroupLivePhotosArguments) {
     const data = await getData(argv.path);
@@ -108,7 +122,7 @@ export async function handler(argv: IGroupLivePhotosArguments) {
     const list = _.groupBy(data, 'groupUuid');
 
     for (const items of Object.values(list)) {
-        if (items.length < 2) {
+        if (!checkGroup(items)) {
             continue;
         }
 
