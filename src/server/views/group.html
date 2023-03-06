@@ -10,13 +10,20 @@
             white-space: nowrap;
             text-overflow: ellipsis;
             width: 280px;
-            margin: 0 0 .5em 0;
+            margin: 0 0 .2em 0;
+        }
+        h2 {
+            margin: 0;
+        }
+        table {
+            margin-bottom: 1em;
         }
         td {
             width: 300px;
-            border: 1px solid gray;
+            border: 1px solid rgba(100,100,100,0.3);
             padding: 5px;
             vertical-align: top;
+            position: relative;
         }
         img {
             height: 100px;
@@ -27,6 +34,29 @@
         .winner.video {
             background: lightgoldenrodyellow;
         }
+        label {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        input {
+            position: absolute;
+            top: 0.5em;
+            right: 0.5em;
+        }
+        input:checked + label {
+            background: lightcoral;
+            opacity: 0.2;
+        }
+        .meta {
+            margin: 0.4em;
+            padding-right: 1.5em;
+            float: right;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 <body>
@@ -34,24 +64,48 @@
 <% var start = 0; %>
 <% var limit = 4000; %>
 <% items = items.slice(start, start + limit); %>
-<% items = items.filter(item => item.files.length > 1); %>
+
+<% function printDate(date) {
+    const utcDate = new Date(date.toUTCString()); // конвертирование даты в UTC
+    const options = { timeZone: process.env.TIMEZONE || 'UTC' }; // название часового пояса
+
+    return utcDate.toLocaleString('ru-RU', options);
+} %>
+
+<% function equalArray(arr, field) {
+    for (let i = 1; i < arr.length; i++) {
+        if (JSON.stringify(arr[i][field]) !== JSON.stringify(arr[0][field])) { return false; }
+    }
+    return true;
+} %>
+
+<form action="/groups" method="post">
 <% for (const itemIndex in items) { %>
     <% const item = items[itemIndex] %>
-    <h2><%= parseInt(itemIndex, 10) + 1 %>. <%= item.date ? (new Date(item.date * 1000)).toISOString().replace('T', ' ').replace('.000Z', '') : '' %></h2>
+    <h2>
+        <%= parseInt(itemIndex, 10) + 1 %>.
+        <%= item.date ? printDate(new Date(item.date * 1000)) : '' %>
+        &nbsp;&nbsp;⏰<%= equalArray(item.files, 'date') ? '✅' : '❌' %>
+        &nbsp;&nbsp;🛰<%= equalArray(item.files, 'gps') ? '✅' : '❌' %>
+    </h2>
     <table><tr>
         <% for (const file of item.files) { %>
             <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>">
+                <span class="meta"><%= file.exif.CompressorName %></span>
                 <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.FileName %></b></p>
-                <p>Date: <%= file.date ? (new Date(file.date * 1000)).toISOString() : '' %></p>
+                <p>Date: <%= file.date ? printDate(new Date(file.date * 1000)) : '' %></p>
                 <p><%= file.exif.ImageSize %> | <%= file.exif.FileSize %> | <%= file.exif.Duration %></p>
                 <% if (file.gps) { %>
                     <p>GPS: <%= file.gps.lat %>, <%= file.gps.lon %></p>
                 <% } %>
                 <img src="<%= file.thumbnailUrl %>" />
+                <input type="checkbox" name="file[]" value="<%= file.FileName %>" id="<%= file.FileName %>" <%= file.win ? '' : ' checked' %> />
+                <label for="<%= file.FileName %>" />
             </td>
         <% } %>
     </tr></table>
 <% } %>
-
+    <p><button type="submit">Delete!</button></p>
+</form>
 </body>
 </html>

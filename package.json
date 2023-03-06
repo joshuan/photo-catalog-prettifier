@@ -10,13 +10,14 @@
     "test": "jest src",
     "test:dev": "DEBUG=photo-catalog-prettifier:* jest src --watch",
     "buildData": "ts-node --esm src/cli/index.ts buildData",
-    "dev": "DEBUG=*,-express:*,-finalhandler,-send ts-node --esm src/server/index.ts",
+    "dev": "env $(cat .env | xargs) ts-node --esm src/server/index.ts",
     "clear": "rm -rf database/*.json && rm -rf database/thumbnails/*"
   },
   "keywords": [],
   "author": "Joshuan <joshuan.chel@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "1.20.2",
     "debug": "4.3.4",
     "ejs": "3.1.8",
     "execa": "7.0.0",

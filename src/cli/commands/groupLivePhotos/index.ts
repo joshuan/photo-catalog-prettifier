@@ -1,8 +1,7 @@
 import { Argv } from 'yargs';
-import _ from 'lodash';
-import { ExifTool } from '../../../lib/exiftool.js';
 import { rename } from '../../../lib/fs.js';
 import { getBasename, getExt } from '../../../lib/path.js';
+import { Database } from '../../../server/services/database.js';
 
 export const command = 'groupLivePhotos <path>';
 export const description = 'Group live photos and videos by as name';
@@ -23,77 +22,13 @@ export function builder(argv: Argv): Argv<IGroupLivePhotosArguments> {
         .options('suffix', {
             desc: 'Suffix for video file',
             type: 'string',
-            default: '_live',
+            default: ' (live)',
         })
         .option('dryRun', {
             type: 'boolean',
             default: false,
         })
     ;
-}
-
-interface IRawPartData {
-    SourceFile?: string;
-    FileName?: string;
-    MIMEType?: string;
-    MediaGroupUUID?: string;
-    ContentIdentifier?: string;
-}
-
-interface IPartData {
-    SourceFile: string;
-    FileName: string;
-    groupUuid: string;
-    MIMEType: string;
-}
-
-function filterWithoutGroup(item: IRawPartData): boolean {
-    return Boolean(item.MediaGroupUUID || item.ContentIdentifier);
-}
-
-function parseAndValidateData(item: IRawPartData): IPartData {
-    if (!item.SourceFile) { throw new Error('Undefined SourceFile!', { cause: item }); }
-    if (!item.FileName) { throw new Error('Undefined FileName!', { cause: item }); }
-    if (!item.MIMEType) { throw new Error('Undefined MIMEType!', { cause: item }); }
-    if (!item.MediaGroupUUID && !item.ContentIdentifier) {
-        throw new Error('Undefined MediaGroupUUID/ContentIdentifier !', { cause: item });
-    }
-
-    return {
-        SourceFile: item.SourceFile,
-        FileName: item.FileName,
-        groupUuid: item.MediaGroupUUID || item.ContentIdentifier || '',
-        MIMEType: item.MIMEType,
-    };
-}
-
-async function getData(path: string): Promise<IPartData[]> {
-    const tool = new ExifTool(path);
-    const data = await tool.getData(['FileName', 'MIMEType', 'MediaGroupUUID', 'ContentIdentifier']);
-
-    return data.filter(filterWithoutGroup).map(parseAndValidateData);
-}
-
-function isImage(item: IPartData) {
-    return item.MIMEType.includes('image');
-}
-
-function isVideo(item: IPartData) {
-    return item.MIMEType.includes('video');
-}
-
-function getPair(items: IPartData[]): { image?: IPartData; video?: IPartData; } {
-    if (items.length !== 2) {
-        throw new Error('Broken pair', { cause: items });
-    }
-
-    if (isVideo(items[0]) && isImage(items[1])) {
-        return { image: items[1], video: items[0] };
-    } else if (isImage(items[0]) && isVideo(items[1])) {
-        return { image: items[0], video: items[1] };
-    }
-
-    throw new Error('Pair is not from image and video', { cause: items });
 }
 
 function calcRename(imageFilename: string, videoFilename: string, suffix: string): string {
@@ -103,35 +38,28 @@ function calcRename(imageFilename: string, videoFilename: string, suffix: string
     return imageBase + suffix + getExt(videoFilename);
 }
 
-function checkGroup(items: IPartData[]) {
-    if (items.length !== 2) {
-        return false;
-    }
-
-    if (isVideo(items[0]) && isImage(items[1])) {
-        return true;
-    } else if (isImage(items[0]) && isVideo(items[1])) {
-        return true;
-    }
-
-    return false;
-}
-
 // Группируем live photos из 2 файлов, по общему MediaGroupUUID - они должны иметь одинаковое имя.
 export async function handler(argv: IGroupLivePhotosArguments) {
-    const data = await getData(argv.path);
+    const ROOT = argv.path;
+    const database = await Database.init(ROOT, false);
+    const items = await database.getItems();
 
-    const list = _.groupBy(data, 'groupUuid');
-
-    for (const items of Object.values(list)) {
-        if (!checkGroup(items)) {
+    for (const item of items) {
+        if (item.files.length !== 2) {
             continue;
         }
 
-        const { image, video } = getPair(items);
+        let image = null;
+        let video = null;
 
-        if (!image || !video) {
-            continue;
+        if (item.files[0].type === 'image' && item.files[1].type === 'video') {
+            image = item.files[0];
+            video = item.files[1];
+        } else if (item.files[0].type === 'video' && item.files[1].type === 'image') {
+            image = item.files[1];
+            video = item.files[0];
+        } else {
+            throw new Error('Broken pair', { cause: item });
         }
 
         const src = video.FileName;
@@ -139,9 +67,9 @@ export async function handler(argv: IGroupLivePhotosArguments) {
 
         if (src !== dest) {
             console.log('-', { src, dest });
-            await rename(argv.path, src, dest);
+            if (!argv.dryRun) {
+                await rename(argv.path, src, dest);
+            }
         }
     }
-
-    console.log('✅');
 }

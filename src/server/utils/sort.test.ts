@@ -4,8 +4,8 @@ import { ISortableItem, sortImages } from './sort.js';
 describe('sort', () => {
     test('sortImages', () => {
         const data: ISortableItem[] = [
-            { MIMEType: 'image/heic', imageSize: 10, size: 10 },
-            { MIMEType: 'image/heic', imageSize: 20, size: 20 },
+            { exif: {}, MIMEType: 'image/heic', imageSize: 10, size: 10 },
+            { exif: {}, MIMEType: 'image/heic', imageSize: 20, size: 20 },
         ];
 
         const list = sortImages(data);

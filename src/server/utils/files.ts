@@ -1,6 +1,7 @@
 import { buildThumbnail } from '../../cli/commands/buildData/thumbnail.js';
 import { buildDate } from '../../lib/exifdate/index.js';
 import { ExifTool, IExifPartialData, IExifRequiredData } from '../../lib/exiftool.js';
+import { buildGps } from '../../lib/gps.js';
 import { getBasename } from '../../lib/path.js';
 
 export type TFilesItem = {
@@ -10,7 +11,7 @@ export type TFilesItem = {
     MIMEType: IExifRequiredData['MIMEType'],
     exif: IExifPartialData,
     date?: number,
-    gps?: { lat: number; lon: number };
+    gps?: { lat: string; lon: string };
     thumbnailFile: string;
     thumbnailUrl: string;
     type: 'image' | 'video';
@@ -36,8 +37,9 @@ export async function buildFiles(path: string): Promise<TFilesList> {
             FileName: file.FileName,
             MIMEType: file.MIMEType,
             exif: file,
-            date: buildDate(file)?.getTime(),
+            date: buildDate(file, process.env.DEFAULT_PHOTO_OFFSET)?.getTime(),
             thumbnailFile: thumbnail,
+            gps: buildGps(file),
             thumbnailUrl: `/thumbnails/${getBasename(thumbnail)}`,
             type: ExifTool.getType(file.MIMEType),
             groupId: ExifTool.getGroupId(file),

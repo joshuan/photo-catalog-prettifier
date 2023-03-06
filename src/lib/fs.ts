@@ -4,6 +4,16 @@ import { debugUtil } from './debug.js';
 
 const debug = debugUtil('fs');
 
+export async function readDir(dirpath: string): Promise<string[]> {
+    debug('readDir start', dirpath);
+    return new Promise((resolve, reject) => {
+        fs.readdir(dirpath, function(err, files) {
+            debug('readDir finish', files.length);
+            err ? reject(err) : resolve(files);
+        });
+    });
+}
+
 export async function isFileExist(filepath?: string): Promise<boolean> {
     debug('isFileExist start', filepath);
     return new Promise((resolve, reject) => {

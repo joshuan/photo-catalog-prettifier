@@ -1,4 +1,5 @@
 export interface ISortableItem {
+    exif: { CompressorName?: string; }
     MIMEType: string;
     imageSize: number;
     size: number;
@@ -34,9 +35,12 @@ export function sortImages<T extends ISortableItem>(images: T[]): T[] {
 
 export function sortVideos<T extends ISortableItem>(videos: T[]): T[] {
     videos.sort((a, b) => {
-        if (a.MIMEType === b.MIMEType) {
+        const typeA = a.exif.CompressorName || a.MIMEType;
+        const typeB = b.exif.CompressorName || b.MIMEType;
+
+        if (typeA === typeB) {
             return compareSize(a, b);
-        } else if (a.MIMEType?.includes('quicktime')) {
+        } else if (typeA.includes('HEVC')) {
             return -1;
         } else {
             return 1;

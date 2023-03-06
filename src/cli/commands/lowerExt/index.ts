@@ -1,10 +1,10 @@
 import { Argv } from 'yargs';
 import { ExifTool } from '../../../lib/exiftool.js';
-import { rename } from '../../../lib/fs.js';
+import { readDir, rename } from '../../../lib/fs.js';
 import { getBasename, getExt } from '../../../lib/path.js';
 
 export const command = 'lowerExt <path>';
-export const description = 'Find similar photos';
+export const description = 'Rename files to lower extensions';
 
 interface ILowerExtArguments {
     path: string;
@@ -30,12 +30,7 @@ interface IPartData {
     FileName: string;
 }
 
-function getData(path: string): Promise<IPartData[]> {
-    const tool = new ExifTool(path);
-    return tool.getFiles();
-}
-
-const LOWER_EXT_RE = /^\.([a-z]+)$/;
+const LOWER_EXT_RE = /^\.([a-z0-9]+)$/;
 
 function isLowerExt(filename: string): boolean {
     const ext = getExt(filename);
@@ -52,20 +47,19 @@ function buildLowerFileName(filename: string): string {
 
 export async function handler(argv: ILowerExtArguments) {
     const ROOT = argv.path;
-    const list = await getData(ROOT);
-    // const list = allFiles.filter((item) => !isLowerExt(item.FileName));
+    const files = await readDir(ROOT);
 
-    for (const item of list) {
-        if (isLowerExt(item.FileName)) {
+    for (const file of files) {
+        if (file.startsWith('.') || isLowerExt(file)) {
             continue;
         }
 
-        const dest = buildLowerFileName(item.FileName);
+        const dest = buildLowerFileName(file);
 
-        console.log(`- ${item.FileName} -> ${dest}`);
+        console.log(`- ${file} -> ${dest}`);
 
         if (!argv.dryRun) {
-            await rename(ROOT, item.FileName, dest);
+            await rename(ROOT, file, dest);
         }
     }
 

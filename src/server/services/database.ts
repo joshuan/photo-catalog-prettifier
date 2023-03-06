@@ -12,12 +12,12 @@ interface TData {
 }
 
 export class Database {
-    static async init(path: string): Promise<Database> {
+    static async init(path: string, useCache: boolean = true): Promise<Database> {
         debug('Database init with path %s', path);
 
         const cache = new DatabaseCache<TData>(getBasename(path));
 
-        let data = await cache.get();
+        let data = useCache ? await cache.get() : undefined;
 
         if (!data) {
             debug('Data was not in the cache');

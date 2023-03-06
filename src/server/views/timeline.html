@@ -17,7 +17,7 @@
             margin: 0 0 .5em 0;
         }
         img {
-            height: 50px;
+            height: 100px;
         }
         .list {
             position: relative;
@@ -50,9 +50,15 @@
 </head>
 <body>
 <% const interval = 60 * 20 /* 20 минут - интервал между метками */ %>
-<% const koef = 60 * 60 * 1; /* 1 часов - уложится в 1 экран */ %>
+<% const koef = 60 * 60 * 3; /* 3 часов - уложится в 1 экран */ %>
 
-<% function printDate(time) { return (new Date(time)).toISOString().replace('T', ' ').replace('.000Z', ''); } %>
+<% function printDate(time) {
+    const utcDate = new Date(time); // конвертирование даты в UTC
+    const options = { timeZone: process.env.TIMEZONE || 'UTC' }; // название часового пояса
+
+    return utcDate.toLocaleString('ru-RU', options);
+} %>
+
 <% function printTop(time) { return Math.floor((time - minTime) / koef); } %>
 <% function printLeft(time) { var d = new Date(time); return d.getMinutes() * 1.5; } %>
 
@@ -73,11 +79,24 @@
                 title="<%= printDate(time) %> - <%= item.files.map((file) => file.FileName).join(', ') %>"
             />
             <div>
-                <%= (new Date(time)).toISOString().substring(11, 19) %>
+                <%= printDate(time).substring(11, 20) %>
+                <br />
+                <%= item.files[0].FileName %>
             </div>
         </div>
     <% } %>
 </div>
+<script>
+    const elements = document.getElementsByClassName('item');
 
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].addEventListener('mouseover', function() {
+            this.style.zIndex = '9999';
+        });
+        elements[i].addEventListener('mouseout', function() {
+            this.style.zIndex = 'initial';
+        });
+    }
+</script>
 </body>
 </html>
