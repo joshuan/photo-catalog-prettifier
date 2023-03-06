@@ -1,5 +1,5 @@
-import { ColonDate, TimeZone } from '../../../cli/utils/date.js';
-import { debugUtil } from '../../../cli/utils/debug.js';
+import { ColonDate, TimeZone } from '../../date.js';
+import { debugUtil } from '../../debug.js';
 
 const debug = debugUtil('renameToDate:exif');
 const BROKEN_DATE = '0000:00:00 00:00:00';

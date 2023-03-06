@@ -1,5 +1,5 @@
-import { ColonDate } from '../../cli/utils/date.js';
-import { debugUtil } from '../../cli/utils/debug.js';
+import { ColonDate } from '../date.js';
+import { debugUtil } from '../debug.js';
 import { getDateFromGps } from './sources/gps.js';
 import { getDateFromExif } from './sources/exif.js';
 import { getDateFromFilename } from './sources/filename.js';

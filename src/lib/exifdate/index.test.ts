@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { buildDate, IExifDateItem } from './date.js';
+import { buildDate, IExifDateItem } from './index.js';
 
 const examples: { source: IExifDateItem, expected: string | undefined; }[] = [
     {

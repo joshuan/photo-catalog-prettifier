@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Group</title>
+    <style>
+        p {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            width: 280px;
+            margin: 0 0 .5em 0;
+        }
+        td {
+            width: 300px;
+            border: 1px solid gray;
+            padding: 5px;
+            vertical-align: top;
+        }
+        img {
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+
+<% for (const groupId in groups) { %>
+    <div>
+        <h2>Group <%= groupId %></h2>
+        <table><tr>
+            <% for (const item of groups[groupId]) { %>
+                <td>
+                    <p><b><%= item.FileName %></b></p>
+                    <p>Date: <%= (new Date(item.date * 1000)).toISOString() %></p>
+                    <p><%= item.exif.ImageSize %> | <%= item.exif.FileSize %> | <%= item.exif.Duration %></p>
+                    <% if (item.gps) { %>
+                        <p>GPS: <%= item.gps.lat %>, <%= item.gps.lon %></p>
+                    <% } %>
+                    <img src="<%= item.thumbnailUrl %>" />
+                </td>
+            <% } %>
+        </tr></table>
+    </div>
+<% } %>
+
+</body>
+</html>

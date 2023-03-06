@@ -1,7 +1,7 @@
 import { Argv } from 'yargs';
-import { ExifTool } from '../../utils/exiftool.js';
-import { rename } from '../../utils/fs.js';
-import { getBasename, getExt } from '../../utils/path.js';
+import { ExifTool } from '../../../lib/exiftool.js';
+import { rename } from '../../../lib/fs.js';
+import { getBasename, getExt } from '../../../lib/path.js';
 
 export const command = 'lowerExt <path>';
 export const description = 'Find similar photos';

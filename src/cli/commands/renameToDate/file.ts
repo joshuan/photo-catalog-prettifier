@@ -1,5 +1,5 @@
-import { ColonDate, TimeZone } from '../../utils/date.js';
-import { getBasename, getExt } from '../../utils/path.js';
+import { ColonDate, TimeZone } from '../../../lib/date.js';
+import { getBasename, getExt } from '../../../lib/path.js';
 
 const names = new Set<string>();
 

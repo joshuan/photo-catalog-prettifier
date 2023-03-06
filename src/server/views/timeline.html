@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Group</title>
+    <style>
+        p {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            width: 280px;
+            margin: 0 0 .5em 0;
+        }
+        img {
+            height: 50px;
+        }
+        .list {
+            position: relative;
+        }
+        .item {
+            position: absolute;
+            left: 300px;
+            white-space: nowrap;
+        }
+        .dash {
+            position: absolute;
+            left: 0;
+            border-top: 1px solid lightgray;
+            width: 100%;
+            white-space: nowrap;
+            line-height: 1em;
+            font-size: 14px;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+
+<div class="list">
+    <% const interval = 60 * 20 /* 20 минут - интервал между метками */ %>
+    <% const koef = 60 * 60 * 3; /* 3 часов - уложится в 1 экран */ %>
+    <% for (let time = minTime ; time <= maxTime ; time = time + (interval * 1000)) { %>
+        <div class="dash" style="top: <%= Math.floor((time - minTime) / koef); %>px">
+            <%= (new Date(time)).toISOString().replace('T', ' ').replace('.000Z', '') %>
+        </div>
+    <% } %>
+</div>
+<div class="list">
+    <% function buildLeft(date) { var d = new Date(date); return d.getMinutes() * 20; } %>
+    <% for (const item of list) { %>
+        <div class="item" style="top: <%= Math.floor((item.date - minTime) / koef) %>px; left: <%= buildLeft(item.date) %>px">
+            <img src="<%= item.thumbnailUrl %>" title="<%= (new Date(item.date)).toISOString().replace('T', ' ').replace('.000Z', '') %>" /> <%= (new Date(item.date)).toTimeString().substring(0, 8) %>
+        </div>
+    <% } %>
+</div>
+
+</body>
+</html>

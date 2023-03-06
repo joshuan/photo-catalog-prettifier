@@ -1,8 +1,8 @@
 import { Argv } from 'yargs';
 import md5File from 'md5-file';
 import _ from 'lodash';
-import { ExifTool } from '../../utils/exiftool.js';
-import { deleteFile } from '../../utils/fs.js';
+import { ExifTool } from '../../../lib/exiftool.js';
+import { deleteFile } from '../../../lib/fs.js';
 
 export const command = 'removeFullDuplicates <path>';
 export const description = 'Find and remove all full duplicates (compare by hash from file)';

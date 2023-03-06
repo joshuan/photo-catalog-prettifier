@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
 import md5File from 'md5-file';
-import { ExifTool } from '../../utils/exiftool.js';
+import { ExifTool } from '../../../lib/exiftool.js';
 
 export const command = 'findSimilar <path>';
 export const description = 'Find similar photos';

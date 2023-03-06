@@ -58,4 +58,8 @@ export class ColonDate {
     toString(): string {
         return this.clone().setZone(TimeZone.UTC).toString();
     }
+
+    getTime(): number {
+        return this.datetime.toSeconds();
+    }
 }

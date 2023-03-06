@@ -1,8 +1,8 @@
 import { Argv } from 'yargs';
-import { saveData } from '../../utils/database.js';
-import { ExifTool } from '../../utils/exiftool.js';
-import { rename } from '../../utils/fs.js';
-import { getLowerExt } from '../../utils/path.js';
+import { saveData } from '../../../lib/database.js';
+import { ExifTool } from '../../../lib/exiftool.js';
+import { rename } from '../../../lib/fs.js';
+import { getLowerExt } from '../../../lib/path.js';
 import { buildDate } from '../../../lib/exifdate/index.js';
 import { createFilename, lowerExt } from './file.js';
 

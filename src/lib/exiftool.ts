@@ -1,6 +1,6 @@
-import { execaSync } from 'execa';
 import { debugUtil } from './debug.js';
-import { buildDate } from '../../lib/exifdate/index.js';
+import { Executable } from './Executable.js';
+import { fileStat } from './fs.js';
 
 const debug = debugUtil('exiftool');
 
@@ -517,25 +517,13 @@ export type IExifPartialData<T extends TAvailableFields = TAvailableFields> = IB
 export type IExifRequiredData<TRequired extends TAvailableFields = TAvailableFields> = IBaseData & Pick<IRequestedData, TRequired>;
 export type IExifData<TRequired extends TAvailableFields, TPartial extends TAvailableFields> = IExifPartialData<TPartial> & IExifRequiredData<TRequired>;
 
-export class ExifTool {
-    constructor(private readonly path: string) {}
-
-    static async exec(options: string[]): Promise<string> {
-        debug('Execute:', ['exiftool', ...options]);
-
-        const result = execaSync('exiftool', options);
-
-        if (result.exitCode !== 0) {
-            throw new Error('Not zero code result', { cause: result });
-        }
-
-        debug('Stderr print:', result.stderr.split('\n').map(x => x.trim()));
-
-        return result.stdout;
+export class ExifTool extends Executable {
+    constructor(private readonly path: string) {
+        super('exiftool');
     }
 
     private async execJson<T extends TAvailableFields = TAvailableFields>(fields: T[] = []): Promise<IExifPartialData<T>[]> {
-        const result = await ExifTool.exec(['-json', ...(fields.map(x => `-${x}`)), this.path]);
+        const result = await this.exec(['-json', ...(fields.map(x => `-${x}`)), this.path]);
 
         let data = [] as IExifPartialData<T>[];
 
@@ -552,7 +540,7 @@ export class ExifTool {
         return data;
     }
 
-    public validateField<T extends TAvailableFields>(data: IExifPartialData<T>, field: T): IExifRequiredData<T>[T] {
+    public static validateField<T extends TAvailableFields>(data: IExifPartialData<T>, field: T): IExifRequiredData<T>[T] {
         if (typeof data[field] !== 'undefined') {
             throw new Error(`Field ${field} is required.`);
         }
@@ -560,24 +548,24 @@ export class ExifTool {
         return data[field] as IExifRequiredData<T>[T];
     }
 
-    async getFullData(): Promise<IExifData<'FileName', TAvailableFields>[]> {
+    async getFullData(): Promise<IExifData<'FileName' | 'Directory' | 'MIMEType', TAvailableFields>[]> {
         // @ts-expect-error
         const data = await this.execJson(['b']);
 
-        return data as IExifData<'FileName', TAvailableFields>[];
+        return data as IExifData<'FileName' | 'Directory' | 'MIMEType', TAvailableFields>[];
     }
 
     async getPartialData<T extends TAvailableFields>(fields: T[]): Promise<IExifPartialData<T>[]> {
         return await this.execJson(fields);
     }
 
-    public validateData<T extends TAvailableFields>(item: IExifPartialData<T>, fields: T[]): IExifRequiredData<T> {
+    public static validateData<T extends TAvailableFields>(item: IExifPartialData<T>, fields: T[]): IExifRequiredData<T> {
         const result = {
             SourceFile: item.SourceFile,
         } as IExifRequiredData<T>;
 
         for (const key of fields) {
-            result[key] = this.validateField(item, key);
+            result[key] = ExifTool.validateField(item, key);
         }
 
         return result;
@@ -586,47 +574,35 @@ export class ExifTool {
     async getData<T extends TAvailableFields>(fields: T[]): Promise<IExifRequiredData<T>[]> {
         const data = await this.execJson(fields);
 
-        return data.map((item) => this.validateData(item, fields));
+        return data.map((item) => ExifTool.validateData(item, fields));
     }
 
     async getFiles() {
         return await this.getData(['FileName']);
     }
 
-    private parseGps(item: IExifPartialData) {
-        if (item.GPSLatitude && item.GPSLongitude) {
-            const GPS_RE = /^(\d+)\sdeg\s(\d+)\'\s([\d\.]+)\"\s(\w+)$/;
+    static getType(MIMEType: string): 'video' | 'image' {
+        if (MIMEType.includes('image/')) { return 'image'; }
+        if (MIMEType.includes('video/')) { return 'video'; }
 
-            // "25 deg 19' 47.38\" N"
-            function parseGeoPoint(gps: string) {
-                const found = GPS_RE.exec(gps);
-
-                if (found === null) {
-                    return null;
-                }
-
-                const degrees = parseFloat(found[1]);
-                const minutes = parseFloat(found[2]);
-                const seconds = parseFloat(found[3]);
-                const isPositive: boolean = ['N', 'E'].includes(found[4]);
-
-                return (degrees + minutes/60 + seconds/3600) * (isPositive ? 1 : -1);
-            }
-
-            return {
-                lat: parseGeoPoint(item.GPSLatitude),
-                lon: parseGeoPoint(item.GPSLongitude),
-            };
-        }
-
-        return null;
+        throw new Error(`Wrong mime type ${MIMEType}`);
     }
 
-    public parseItem(item: IExifPartialData) {
-        return {
-            ...item,
-            date: buildDate(item),
-            gps: this.parseGps(item),
-        };
+    static getGroupId(item: IExifPartialData): string | null {
+        return item.MediaGroupUUID || item.ContentIdentifier || null;
+    }
+
+    static async calcFileSize(item: { SourceFile: string }): Promise<number> {
+        const { size } = await fileStat(item.SourceFile);
+
+        return size;
+    }
+
+    static calcImageSize(item: { ImageWidth?: number; ImageHeight?: number }): number {
+        if (!item.ImageWidth || !item.ImageHeight) {
+            throw new Error('Can not calc image size', { cause: item });
+        }
+
+        return item.ImageWidth * item.ImageHeight;
     }
 }

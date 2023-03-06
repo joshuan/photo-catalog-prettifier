@@ -1,18 +1,18 @@
-import express from 'express';
-import { pinoHttp } from 'pino-http';
+import app from './app.js';
+import { getPath, initArguments } from '../lib/argv.js';
+import { Database } from './services/database.js';
 
-const app = express();
 const port = 3000;
 
-const logger = pinoHttp({
-    transport: { target: 'pino-pretty' },
-});
-
-app.get('/', (req, res) => {
-    logger(req, res);
-    res.send('Hello World!');
-});
-
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
+initArguments()
+    .then((argv) => getPath(argv))
+    .then(({ path }) => Database.init(path))
+    .then((database) => {
+        app.set('database', database);
+        app.listen(port, () => {
+            console.log(`Example app listening on port ${port}`);
+        });
+    })
+    .catch(error => {
+        console.error('Failed to init server.', error);
+    });

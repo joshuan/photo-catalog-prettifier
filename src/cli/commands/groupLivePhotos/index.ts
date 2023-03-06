@@ -1,8 +1,8 @@
 import { Argv } from 'yargs';
 import _ from 'lodash';
-import { ExifTool } from '../../utils/exiftool.js';
-import { rename } from '../../utils/fs.js';
-import { getBasename, getExt } from '../../utils/path.js';
+import { ExifTool } from '../../../lib/exiftool.js';
+import { rename } from '../../../lib/fs.js';
+import { getBasename, getExt } from '../../../lib/path.js';
 
 export const command = 'groupLivePhotos <path>';
 export const description = 'Group live photos and videos by as name';

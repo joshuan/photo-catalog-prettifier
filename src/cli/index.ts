@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import yargs from 'yargs';
-import * as commandGetData from './commands/getData/index.js';
+import * as commandGetData from './commands/buildData/index.js';
 import * as saveOriginalNameToComment from './commands/saveOriginalNameToComment/index.js';
 import * as renameToDate from './commands/renameToDate/index.js';
 import * as groupLivePhotos from './commands/groupLivePhotos/index.js';

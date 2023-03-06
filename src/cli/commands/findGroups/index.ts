@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
 import _ from 'lodash';
-import { ExifTool, IExifPartialData, IExifRequiredData, TAvailableFields } from '../../utils/exiftool.js';
+import { ExifTool, IExifPartialData, IExifRequiredData, TAvailableFields } from '../../../lib/exiftool.js';
 
 export const command = 'findGroups <path>';
 export const description = 'Find group of photos';
@@ -42,13 +42,6 @@ interface IData extends IExifRequiredData<typeof fields[number]> {
     type: 'video' | 'image';
 }
 
-function getType(MIMEType: string): 'video' | 'image' {
-    if (MIMEType.includes('image/')) { return 'image'; }
-    if (MIMEType.includes('video/')) { return 'video'; }
-
-    throw new Error(`Wrong mime type ${MIMEType}`);
-}
-
 async function getData(path: string): Promise<IData[]> {
     const tool = new ExifTool(path);
     const data = await tool.getPartialData(rawFields);
@@ -60,7 +53,7 @@ async function getData(path: string): Promise<IData[]> {
 
             return {
                 ...tool.validateData(item, fields),
-                type: getType(mimeType),
+                type: ExifTool.getType(mimeType),
                 groupUuid: item.MediaGroupUUID || item.ContentIdentifier || '',
             };
         });

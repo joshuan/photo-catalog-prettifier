@@ -3,10 +3,14 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 
-export const ROOT = path.resolve(path.dirname(__filename), '../../../');
+export const ROOT = path.resolve(path.dirname(__filename), '../../');
+
+export function resolvePath(...file: string[]): string {
+    return path.resolve(...file);
+}
 
 export function resolveByRoot(...file: string[]): string {
-    return path.resolve(ROOT, path.join(...file));
+    return resolvePath(ROOT, ...file);
 }
 
 export function joinPath(...file: string[]): string {
@@ -17,7 +21,7 @@ export function getExt(filename: string): string {
     return path.extname(filename);
 }
 
-export function getBasename(filename: string, ext: string): string {
+export function getBasename(filename: string, ext?: string): string {
     return path.basename(filename, ext);
 }
 
