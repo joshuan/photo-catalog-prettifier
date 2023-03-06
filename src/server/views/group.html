@@ -31,9 +31,10 @@
 </head>
 <body>
 
-<% var start = 1125; %>
-<% var limit = 4; %>
+<% var start = 0; %>
+<% var limit = 4000; %>
 <% items = items.slice(start, start + limit); %>
+<% items = items.filter(item => item.files.length > 1); %>
 <% for (const itemIndex in items) { %>
     <% const item = items[itemIndex] %>
     <h2><%= parseInt(itemIndex, 10) + 1 %>. <%= item.date ? (new Date(item.date * 1000)).toISOString().replace('T', ' ').replace('.000Z', '') : '' %></h2>

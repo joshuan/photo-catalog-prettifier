@@ -14,6 +14,7 @@ app.get('/', mainController);
 app.get('/groups', groupController);
 app.get('/timeline', timelineController);
 app.get('/geo', geoController);
+
 app.use('/thumbnails', express.static(resolveByRoot('database/thumbnails')));
 
 export default app;

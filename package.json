@@ -10,7 +10,7 @@
     "test": "jest src",
     "test:dev": "DEBUG=photo-catalog-prettifier:* jest src --watch",
     "buildData": "ts-node --esm src/cli/index.ts buildData",
-    "dev": "ts-node --esm src/server/index.ts",
+    "dev": "DEBUG=*,-express:*,-finalhandler,-send ts-node --esm src/server/index.ts",
     "clear": "rm -rf database/*.json && rm -rf database/thumbnails/*"
   },
   "keywords": [],

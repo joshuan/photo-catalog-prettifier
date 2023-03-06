@@ -7,6 +7,7 @@ export type TFilesItem = {
     SourceFile: IExifRequiredData['SourceFile'],
     Directory: IExifRequiredData['Directory'],
     FileName: IExifRequiredData['FileName'],
+    MIMEType: IExifRequiredData['MIMEType'],
     exif: IExifPartialData,
     date?: number,
     gps?: { lat: number; lon: number };
@@ -33,6 +34,7 @@ export async function buildFiles(path: string): Promise<TFilesList> {
             SourceFile: file.SourceFile,
             Directory: file.Directory,
             FileName: file.FileName,
+            MIMEType: file.MIMEType,
             exif: file,
             date: buildDate(file)?.getTime(),
             thumbnailFile: thumbnail,

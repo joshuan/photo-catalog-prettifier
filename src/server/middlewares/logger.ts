@@ -11,10 +11,12 @@ const httpLogger = pinoHttp({
         res: () => {},
     },
     customSuccessMessage: function (req, res) {
-        return `< ${req.method} ${req.url} - ${res.statusCode} ${res.statusMessage}`;
+        // @ts-ignore
+        return `< ${req.method} ${req.originalUrl} - ${res.statusCode} ${res.statusMessage}`;
     },
     customReceivedMessage: function (req, res) {
-        return `> ${req.method} ${req.url}`;
+        // @ts-ignore
+        return `> ${req.method} ${req.originalUrl}`;
     },
 });
 

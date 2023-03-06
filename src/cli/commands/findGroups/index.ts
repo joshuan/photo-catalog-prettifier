@@ -49,10 +49,10 @@ async function getData(path: string): Promise<IData[]> {
     return data
         .filter((item) => Boolean(item.MediaGroupUUID || item.ContentIdentifier))
         .map((item) => {
-            const mimeType = tool.validateField(item, 'MIMEType');
+            const mimeType = ExifTool.validateField(item, 'MIMEType');
 
             return {
-                ...tool.validateData(item, fields),
+                ...ExifTool.validateData(item, fields),
                 type: ExifTool.getType(mimeType),
                 groupUuid: item.MediaGroupUUID || item.ContentIdentifier || '',
             };
