@@ -548,11 +548,10 @@ export class ExifTool extends Executable {
         return data[field] as IExifRequiredData<T>[T];
     }
 
-    async getFullData(): Promise<IExifData<'FileName' | 'Directory' | 'MIMEType', TAvailableFields>[]> {
-        // @ts-expect-error
-        const data = await this.execJson(['b']);
+    async getFullData(): Promise<IExifData<'FileName' | 'Directory' | 'MIMEType'>[]> {
+        const data = await this.execJson();
 
-        return data as IExifData<'FileName' | 'Directory' | 'MIMEType', TAvailableFields>[];
+        return data as IExifData<'FileName' | 'Directory' | 'MIMEType'>[];
     }
 
     async getPartialData<T extends TAvailableFields>(fields: T[]): Promise<IExifPartialData<T>[]> {

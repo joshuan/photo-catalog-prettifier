@@ -12,8 +12,8 @@ export type TFilesItem = {
     exif: IExifPartialData,
     date?: number,
     gps?: { lat: string; lon: string };
-    thumbnailFile: string;
-    thumbnailUrl: string;
+    thumbnailFile: string | null;
+    thumbnailUrl: string | null;
     type: 'image' | 'video';
     groupId: string | null;
     size: number;
@@ -23,13 +23,18 @@ export type TFilesItem = {
 
 export type TFilesList = Record<string, TFilesItem>;
 
-export async function buildFiles(path: string): Promise<TFilesList> {
+interface IBuildFilesOptions {
+    useThumbnails?: boolean;
+}
+
+export async function buildFiles(path: string, options: IBuildFilesOptions = {}): Promise<TFilesList> {
+    const { useThumbnails = true } = options;
     const tool = new ExifTool(path);
     const files = await tool.getFullData();
     const data: TFilesList = {};
 
     for (const file of files) {
-        const thumbnail = await buildThumbnail(file);
+        const thumbnail = useThumbnails ? await buildThumbnail(file) : null;
 
         data[file.FileName] = {
             SourceFile: file.SourceFile,
@@ -40,7 +45,7 @@ export async function buildFiles(path: string): Promise<TFilesList> {
             date: buildDate(file, process.env.DEFAULT_PHOTO_OFFSET)?.getTime(),
             thumbnailFile: thumbnail,
             gps: buildGps(file),
-            thumbnailUrl: `/thumbnails/${getBasename(thumbnail)}`,
+            thumbnailUrl: thumbnail ? `/thumbnails/${getBasename(thumbnail)}` : null,
             type: ExifTool.getType(file.MIMEType),
             groupId: ExifTool.getGroupId(file),
             size: await ExifTool.calcFileSize(file),

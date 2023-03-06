@@ -5,7 +5,7 @@ import { sortImages, sortVideos } from './sort.js';
 export type TDataItem = {
     date?: number,
     gps?: { lat: string; lon: string };
-    thumbnail: string;
+    thumbnail: string | null;
     type: 'image' | 'video';
     live: boolean;
     files: TFilesItem[];

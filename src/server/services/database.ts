@@ -11,8 +11,18 @@ interface TData {
     items: TDataItem[],
 }
 
+interface DatabaseInitOptions {
+    useCache?: boolean;
+    useThumbnails?: boolean;
+}
+
 export class Database {
-    static async init(path: string, useCache: boolean = true): Promise<Database> {
+    static async init(path: string, options: DatabaseInitOptions = {}): Promise<Database> {
+        const {
+            useCache = true,
+            useThumbnails = true,
+        } = options;
+
         debug('Database init with path %s', path);
 
         const cache = new DatabaseCache<TData>(getBasename(path));
@@ -22,7 +32,7 @@ export class Database {
         if (!data) {
             debug('Data was not in the cache');
 
-            const files = await buildFiles(path);
+            const files = await buildFiles(path, { useThumbnails });
             const items = await buildItems(Object.values(files));
 
             data = { files, items };
@@ -33,7 +43,10 @@ export class Database {
         return new Database(path, data);
     }
 
-    constructor(public readonly path: string, public data: TData) {}
+    constructor(
+        public readonly path: string,
+        public data: TData,
+    ) {}
 
     public getFileNames() {
         const keys = Object.keys(this.data.files);

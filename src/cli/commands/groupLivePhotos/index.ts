@@ -41,7 +41,7 @@ function calcRename(imageFilename: string, videoFilename: string, suffix: string
 // Группируем live photos из 2 файлов, по общему MediaGroupUUID - они должны иметь одинаковое имя.
 export async function handler(argv: IGroupLivePhotosArguments) {
     const ROOT = argv.path;
-    const database = await Database.init(ROOT, false);
+    const database = await Database.init(ROOT, { useCache: false, useThumbnails: false });
     const items = await database.getItems();
 
     for (const item of items) {

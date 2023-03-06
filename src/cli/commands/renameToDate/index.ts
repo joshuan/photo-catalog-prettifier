@@ -1,10 +1,8 @@
 import { Argv } from 'yargs';
-import { saveData } from '../../../lib/database.js';
-import { ExifTool } from '../../../lib/exiftool.js';
+import { ColonDate, TimeZone } from '../../../lib/date.js';
 import { rename } from '../../../lib/fs.js';
-import { getLowerExt } from '../../../lib/path.js';
-import { buildDate } from '../../../lib/exifdate/index.js';
-import { createFilename, lowerExt } from './file.js';
+import { getBasename, getExt } from '../../../lib/path.js';
+import { Database } from '../../../server/services/database.js';
 
 export const command = 'renameToDate <path>';
 export const description = 'Rename file to calculated date';
@@ -34,26 +32,55 @@ export function builder(argv: Argv): Argv<RenameToDateArguments> {
     ;
 }
 
-export async function handler(argv: RenameToDateArguments): Promise<void> {
-    const ROOT = argv.path;
-    const tool = new ExifTool(ROOT);
-    const data = await tool.getFullData();
-    const renames = [];
+const names = new Set<string>();
 
-    for (const item of data) {
-        const src = item.FileName;
+function getOriginalSourceFilename(src: string): string {
+    const ext = getExt(src);
+    const RE = new RegExp('^\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\s{1}(.*)' + ext + '$');
+    const found = RE.exec(src);
 
-        const date = buildDate(item, argv.defaultPhotoOffset);
-        let dest = date ? createFilename(date, getLowerExt(src)) : lowerExt(src);
-
-        renames.push({ src, dest });
-
-        if (!argv.dryRun) {
-            await rename(ROOT, src, dest);
-        }
-
-        console.log(`- ${src} was renamed to "${dest}"`);
+    if (found !== null) {
+        return found[1] + ext;
     }
 
-    await saveData('renames', renames);
+    return src;
+}
+
+export function createFilename(src: string, date: ColonDate, add = 0): string {
+    const dateString = date.clone().plus({ second: add }).setZone(TimeZone.Moscow).toFormat('yyyy-MM-dd_HH-mm-ss');
+
+    const result = dateString + ' ' + src;
+
+    if (names.has(result)) {
+        return createFilename(src, date, add + 1);
+    }
+
+    names.add(result);
+
+    return result;
+}
+
+export async function handler(argv: RenameToDateArguments): Promise<void> {
+    const ROOT = argv.path;
+    const database = await Database.init(ROOT, { useCache: false, useThumbnails: false });
+    const data = await database.getItems();
+
+    for (const item of data) {
+        const src = item.files[0].FileName;
+        const date = item.date;
+
+        if (!date) {
+            continue;
+        }
+
+        const dest = createFilename(getOriginalSourceFilename(src), new ColonDate(date * 1000))
+
+        if (src !== dest) {
+            console.log(`- ${src} -> ${dest}`);
+
+            if (!argv.dryRun) {
+                await rename(ROOT, src, dest);
+            }
+        }
+    }
 }
