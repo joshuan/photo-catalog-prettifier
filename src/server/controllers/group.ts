@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { NextFunction, Request, Response } from 'express';
 import { readFile } from '../../lib/fs.js';
 import { Database } from '../services/database.js';
@@ -12,11 +11,13 @@ async function getTemplate() {
 
 export function groupController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
-    const groups = _.groupBy(database.getValues().filter(item => item.groupId), 'groupId');
 
-    getTemplate()
-        .then((template) => {
-            res.send(template({ groups }));
+    Promise.all([
+        database.getItems(),
+        getTemplate(),
+    ])
+        .then(([items, template]) => {
+            res.send(template({ items }));
         })
         .catch((err) => next(err));
 }

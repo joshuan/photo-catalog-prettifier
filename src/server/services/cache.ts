@@ -1,21 +1,26 @@
+import { debugUtil } from '../../lib/debug.js';
 import { readJson, writeJson } from '../../lib/fs.js';
 import { resolveByRoot } from '../../lib/path.js';
 
+const debug = debugUtil('databaseCache');
+
 export class DatabaseCache<T> {
-    private cache: Record<string, T> | null = null;
+    private cache: T | null = null;
     private cacheName: string;
 
     constructor(filename: string) {
+        debug('init cache "%s"', filename);
         this.cacheName = resolveByRoot('database', filename.replace(/\./g, '_'));
     }
 
-    public async get(): Promise<Record<string, T> | null> {
+    public async get(): Promise<T | null> {
+        debug('get cache');
         if (this.cache !== null) {
             return this.cache;
         }
 
         try {
-            this.cache = await readJson<Record<string, T>>(this.cacheName);
+            this.cache = await readJson<T>(this.cacheName);
 
             return this.cache;
         } catch (e) {
@@ -23,7 +28,8 @@ export class DatabaseCache<T> {
         }
     }
 
-    public async set(data: Record<string, T>) {
+    public async set(data: T) {
+        debug('set cache %s', typeof data);
         this.cache = data;
 
         await writeJson(this.cacheName, data);

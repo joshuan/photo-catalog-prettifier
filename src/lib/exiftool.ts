@@ -515,7 +515,7 @@ export type TAvailableFields = keyof IRequestedData;
 
 export type IExifPartialData<T extends TAvailableFields = TAvailableFields> = IBaseData & Partial<Pick<IRequestedData, T>>;
 export type IExifRequiredData<TRequired extends TAvailableFields = TAvailableFields> = IBaseData & Pick<IRequestedData, TRequired>;
-export type IExifData<TRequired extends TAvailableFields, TPartial extends TAvailableFields> = IExifPartialData<TPartial> & IExifRequiredData<TRequired>;
+export type IExifData<TRequired extends TAvailableFields = TAvailableFields, TPartial extends TAvailableFields = TAvailableFields> = IExifPartialData<TPartial> & IExifRequiredData<TRequired>;
 
 export class ExifTool extends Executable {
     constructor(private readonly path: string) {

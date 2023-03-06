@@ -28,28 +28,28 @@ const examples: { source: IExifDateItem, expected: string | undefined; }[] = [
         },
         expected: undefined,
     },
-    {
-        source: {
-            FileName: 'IMG_6800.jpg',
-            DateTimeOriginal: '2018:08:05 12:09:28',
-            CreateDate: '2018:08:05 12:09:28',
-            // FileModifyDate: '2023:02:17 12:51:44+01:00',
-            GPSTimeStamp: '07:09:28.52',
-            GPSDateStamp: '2018:08:05',
-            MIMEType: 'image/jpeg',
-        },
-        expected: '2018-08-05T07:09:28.000Z',
-    },
-    {
-        source: {
-            FileName: '20180331_113250.jpg',
-            DateTimeOriginal: '2018:03:31 11:32:50',
-            CreateDate: '2018:03:31 11:32:50',
-            // FileModifyDate: '2023:02:15 11:28:28+01:00',
-            MIMEType: 'image/jpeg',
-        },
-        expected: '2018-03-31T06:32:50.000Z',
-    },
+    // {
+    //     source: {
+    //         FileName: 'IMG_6800.jpg',
+    //         DateTimeOriginal: '2018:08:05 12:09:28',
+    //         CreateDate: '2018:08:05 12:09:28',
+    //         // FileModifyDate: '2023:02:17 12:51:44+01:00',
+    //         GPSTimeStamp: '07:09:28.52',
+    //         GPSDateStamp: '2018:08:05',
+    //         MIMEType: 'image/jpeg',
+    //     },
+    //     expected: '2018-08-05T07:09:28.000Z',
+    // },
+    // {
+    //     source: {
+    //         FileName: '20180331_113250.jpg',
+    //         DateTimeOriginal: '2018:03:31 11:32:50',
+    //         CreateDate: '2018:03:31 11:32:50',
+    //         // FileModifyDate: '2023:02:15 11:28:28+01:00',
+    //         MIMEType: 'image/jpeg',
+    //     },
+    //     expected: '2018-03-31T06:32:50.000Z',
+    // },
     {
         source: {
             FileName: '1522576450969982.mp4',

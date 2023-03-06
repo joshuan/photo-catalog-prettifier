@@ -1,59 +1,31 @@
 import { debugUtil } from '../../lib/debug.js';
-import { buildThumbnail } from '../../cli/commands/buildData/thumbnail.js';
-import { buildDate } from '../../lib/exifdate/index.js';
-import { ExifTool, IExifPartialData, IExifRequiredData } from '../../lib/exiftool.js';
-import { buildGps } from '../../lib/gps.js';
 import { getBasename } from '../../lib/path.js';
+import { buildFiles, TFilesList } from '../utils/files.js';
+import { buildItems, TDataItem } from '../utils/items.js';
 import { DatabaseCache } from './cache.js';
-
-export type TDatabaseItem = {
-    SourceFile: IExifRequiredData['SourceFile'],
-    Directory: IExifRequiredData['Directory'],
-    FileName: IExifRequiredData['FileName'],
-    exif: IExifPartialData,
-    date?: number,
-    gps?: { lat: number; lon: number };
-    thumbnailFile: string;
-    thumbnailUrl: string;
-    type: 'image' | 'video';
-    groupId: string | null;
-    size: number;
-    imageSize: number;
-};
-type TList = Record<string, TDatabaseItem>;
 
 const debug = debugUtil('database');
 
+interface TData {
+    files: TFilesList,
+    items: TDataItem[],
+}
+
 export class Database {
     static async init(path: string): Promise<Database> {
-        const cache = new DatabaseCache<TDatabaseItem>(getBasename(path));
+        debug('Database init with path %s', path);
+
+        const cache = new DatabaseCache<TData>(getBasename(path));
 
         let data = await cache.get();
 
         if (!data) {
             debug('Data was not in the cache');
 
-            const tool = new ExifTool(path)
-            const found = await tool.getFullData();
-            data = {};
+            const files = await buildFiles(path);
+            const items = await buildItems(Object.values(files));
 
-            for (const item of found) {
-                const thumbnail = await buildThumbnail(item);
-                data[item.FileName] = {
-                    SourceFile: item.SourceFile,
-                    Directory: item.Directory,
-                    FileName: item.FileName,
-                    exif: item,
-                    date: buildDate(item)?.getTime(),
-                    gps: buildGps(item),
-                    thumbnailFile: thumbnail,
-                    thumbnailUrl: `/thumbnails/${getBasename(thumbnail)}`,
-                    type: ExifTool.getType(item.MIMEType),
-                    groupId: ExifTool.getGroupId(item),
-                    size: await ExifTool.calcFileSize(item),
-                    imageSize: ExifTool.calcImageSize(item),
-                };
-            }
+            data = { files, items };
 
             await cache.set(data);
         }
@@ -61,12 +33,12 @@ export class Database {
         return new Database(path, data);
     }
 
-    constructor(public readonly path: string, public data: TList) {}
+    constructor(public readonly path: string, public data: TData) {}
 
-    public getKeys() {
-        const keys = Object.keys(this.data);
+    public getFileNames() {
+        const keys = Object.keys(this.data.files);
 
-        keys.sort((a, b) => (this.data[a]?.date || 0) - (this.data[b]?.date || 0))
+        keys.sort((a, b) => (this.data.files[a]?.date || 0) - (this.data.files[b]?.date || 0))
 
         return keys;
     }
@@ -79,11 +51,15 @@ export class Database {
         return list;
     }
 
-    public getItem(key: string) {
-        if (!this.data[key]) {
+    public getFile(key: string) {
+        if (!this.data.files[key]) {
             throw new Error('Unknown item', { cause: key });
         }
 
-        return this.data[key];
+        return this.data.files[key];
+    }
+
+    public async getItems() {
+        return this.data.items;
     }
 }

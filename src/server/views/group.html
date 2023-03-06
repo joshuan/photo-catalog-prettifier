@@ -21,27 +21,35 @@
         img {
             height: 100px;
         }
+        .winner.image {
+            background: lightgreen;
+        }
+        .winner.video {
+            background: lightgoldenrodyellow;
+        }
     </style>
 </head>
 <body>
 
-<% for (const groupId in groups) { %>
-    <div>
-        <h2>Group <%= groupId %></h2>
-        <table><tr>
-            <% for (const item of groups[groupId]) { %>
-                <td>
-                    <p><b><%= item.FileName %></b></p>
-                    <p>Date: <%= (new Date(item.date * 1000)).toISOString() %></p>
-                    <p><%= item.exif.ImageSize %> | <%= item.exif.FileSize %> | <%= item.exif.Duration %></p>
-                    <% if (item.gps) { %>
-                        <p>GPS: <%= item.gps.lat %>, <%= item.gps.lon %></p>
-                    <% } %>
-                    <img src="<%= item.thumbnailUrl %>" />
-                </td>
-            <% } %>
-        </tr></table>
-    </div>
+<% var start = 1125; %>
+<% var limit = 4; %>
+<% items = items.slice(start, start + limit); %>
+<% for (const itemIndex in items) { %>
+    <% const item = items[itemIndex] %>
+    <h2><%= parseInt(itemIndex, 10) + 1 %>. <%= item.date ? (new Date(item.date * 1000)).toISOString().replace('T', ' ').replace('.000Z', '') : '' %></h2>
+    <table><tr>
+        <% for (const file of item.files) { %>
+            <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>">
+                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.FileName %></b></p>
+                <p>Date: <%= file.date ? (new Date(file.date * 1000)).toISOString() : '' %></p>
+                <p><%= file.exif.ImageSize %> | <%= file.exif.FileSize %> | <%= file.exif.Duration %></p>
+                <% if (file.gps) { %>
+                    <p>GPS: <%= file.gps.lat %>, <%= file.gps.lon %></p>
+                <% } %>
+                <img src="<%= file.thumbnailUrl %>" />
+            </td>
+        <% } %>
+    </tr></table>
 <% } %>
 
 </body>

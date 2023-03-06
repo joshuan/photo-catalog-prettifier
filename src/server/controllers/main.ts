@@ -3,12 +3,12 @@ import { Database } from '../services/database.js';
 
 export function mainController(req: Request, res: Response) {
     const database = req.app.get('database') as Database;
-    const list = database.getKeys();
+    const list = database.getFileNames();
 
     res.send(`<html><body>
         <div>
             ${list.map((file) => {
-                const item = database.getItem(file);
+                const item = database.getFile(file);
 
                 return `<div>
                     <p><b>${file}</b></p>
