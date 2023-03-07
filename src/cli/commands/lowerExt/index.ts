@@ -1,5 +1,4 @@
 import { Argv } from 'yargs';
-import { ExifTool } from '../../../lib/exiftool.js';
 import { readDir, rename } from '../../../lib/fs.js';
 import { getBasename, getExt } from '../../../lib/path.js';
 

@@ -36,9 +36,9 @@ export class Database {
             const items = await buildItems(Object.values(files));
 
             data = { files, items };
-
-            await cache.set(data);
         }
+
+        await cache.set(data);
 
         return new Database(path, data);
     }

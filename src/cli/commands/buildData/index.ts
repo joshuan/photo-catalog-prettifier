@@ -1,8 +1,4 @@
-import { saveData } from '../../../lib/database.js';
-import { buildDate } from '../../../lib/exifdate/index.js';
-import { ExifTool } from '../../../lib/exiftool.js';
-import { buildGps } from '../../../lib/gps.js';
-import { buildThumbnail } from './thumbnail.js';
+import { Database } from '../../../server/services/database.js';
 
 export const command = 'buildData <path>';
 export const description = 'Build collection data from path folder';
@@ -17,20 +13,7 @@ export function builder(yargs: any) {
 }
 
 export async function handler(argv: any) {
-    const tool = new ExifTool(argv.path)
-    const found = await tool.getFullData();
-    const data: Record<string, any> = {};
-
-    for (const item of found) {
-        data[item.FileName] = {
-            ...item,
-            date: buildDate(item),
-            gps: buildGps(item),
-            thumbnail: item.ThumbnailImage || await buildThumbnail(item),
-        };
-    }
-
-    await saveData('data', data);
+    await Database.init(argv.path, { useCache: false, useThumbnails: true });
 
     console.log('Data was saved to database/data.json');
 }

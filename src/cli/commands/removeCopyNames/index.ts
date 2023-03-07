@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
 import { ExifTool } from '../../../lib/exiftool.js';
-import { rename } from '../../../lib/fs.js';
+import { readDir, rename } from '../../../lib/fs.js';
 import { getBasename, getExt } from '../../../lib/path.js';
 
 export const command = 'removeCopyNames <path>';
@@ -37,9 +37,9 @@ function getData(path: string): Promise<IPartData[]> {
 
 const SUFFIX_RE = /\(\d+\)$/;
 
-function isHasSuffix(item: IPartData): boolean {
-    const originalExt = getExt(item.FileName);
-    const originalBase = getBasename(item.FileName, originalExt);
+function isHasSuffix(filename: string): boolean {
+    const originalExt = getExt(filename);
+    const originalBase = getBasename(filename, originalExt);
 
     return SUFFIX_RE.test(originalBase);
 }
@@ -48,27 +48,23 @@ function trimSuffix(filename: string): string {
     const originalExt = getExt(filename);
     const originalBase = getBasename(filename, originalExt);
 
-    return `${originalBase.replace(SUFFIX_RE, '')}${originalExt}`;
+    return `${originalBase.replace(SUFFIX_RE, '').trim()}${originalExt}`;
 }
 
 export async function handler(argv: IRemoveCopyNamesArguments) {
     const ROOT = argv.path;
-    const allFiles = await getData(ROOT);
-    const allSourceFiles = allFiles.reduce<Record<string, IPartData>>((acc, item) => {
-        acc[item.FileName] = item;
-        return acc;
-    }, {});
+    const allFiles = await readDir(ROOT);
     const filesWithSuffix = allFiles.filter(isHasSuffix);
 
-    for (const item of filesWithSuffix) {
-        const dest = trimSuffix(item.FileName);
+    for (const file of filesWithSuffix) {
+        const dest = trimSuffix(file);
 
-        console.log(`- ${item.FileName} -> ${dest}`);
-        if (allSourceFiles[dest]) {
+        console.log(`- ${file} -> ${dest}`);
+        if (allFiles.includes(dest)) {
             console.log(`  ⚠️ file "${dest}" already exists, he was not renamed.`);
         } else {
             if (!argv.dryRun) {
-                await rename(ROOT, item.FileName, dest);
+                await rename(ROOT, file, dest);
             }
         }
     }
