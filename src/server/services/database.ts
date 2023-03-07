@@ -56,14 +56,6 @@ export class Database {
         return keys;
     }
 
-    public getValues() {
-        const list = Object.values(this.data);
-
-        list.sort((a, b) => (a.date || 0) - (b.date || 0));
-
-        return list;
-    }
-
     public getFile(key: string) {
         if (!this.data.files[key]) {
             throw new Error('Unknown item', { cause: key });

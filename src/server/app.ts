@@ -1,7 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { resolveByRoot } from '../lib/path.js';
-import { galleryController } from './controllers/gallery.js';
+import { galleryController, galleryItemController } from './controllers/gallery.js';
 import { geoController } from './controllers/geo.js';
 import { groupController, deleteGroupController } from './controllers/group.js';
 import { mainController } from './controllers/main.js';
@@ -18,6 +18,7 @@ app.get('/groups', groupController);
 app.post('/groups', deleteGroupController);
 app.get('/timeline', timelineController);
 app.get('/gallery', galleryController);
+app.get('/gallery/:id', galleryItemController);
 app.get('/geo', geoController);
 
 app.use('/thumbnails', express.static(resolveByRoot('database/thumbnails')));

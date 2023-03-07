@@ -6,30 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Gallery</title>
     <style>
-        .item {
+        .image {
             display: block;
-            width: 160px;
-            height: 160px;
+            width: 400px;
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            float: left;
-            margin: 0.5em 0.5em 2.5em 0.5em;
             position: relative;
-            color: inherit;
-        }
-        .item:hover {
-            background-color: #ddd;
+            margin: 0 auto;
         }
         .header {
             clear: both;
-        }
-        .name {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            text-align: center;
         }
     </style>
 </head>
@@ -43,16 +30,8 @@
 } %>
 
 <div class="list">
-    <% let lastTime = 0 %>
-    <% for (const item of items) { %>
-        <% if (item.date > (lastTime + 60 * 60 * 2)) { %>
-            <h2 class="header"><%= printDate(new Date(item.date * 1000)) %></h2>
-        <% } %>
-        <a href="/gallery/<%= item.id %>" class="item" id="<%= item.thumbnail %>" style="background-image: url('<%= item.thumbnail %>')">
-            <div class="name"><%= item.files[0].FileName %></div>
-        </a>
-        <% lastTime = item.date %>
-    <% } %>
+    <h2 class="header"><%= printDate(new Date(item.date * 1000)) %></h2>
+    <img class="image" src="<%= item.thumbnail %>" />
 </div>
 
 </body>

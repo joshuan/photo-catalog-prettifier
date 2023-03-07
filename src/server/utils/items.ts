@@ -3,7 +3,8 @@ import { TFilesItem } from './files.js';
 import { sortImages, sortVideos } from './sort.js';
 
 export type TDataItem = {
-    date?: number,
+    id: string;
+    date?: number;
     gps?: { lat: string; lon: string };
     thumbnail: string | null;
     type: 'image' | 'video';
@@ -52,6 +53,7 @@ export async function buildItems(files: TFilesItem[]): Promise<TDataItem[]> {
 
     for (const file of filesWithoutGroup) {
         data.push({
+            id: file.FileName,
             date: file.date,
             gps: file.gps,
             thumbnail: file.thumbnailUrl,
@@ -65,6 +67,7 @@ export async function buildItems(files: TFilesItem[]): Promise<TDataItem[]> {
         const groupFiles = sortFiles(groups[groupId]);
 
         data.push({
+            id: groupFiles[0].FileName,
             date: selectDate(groupFiles),
             gps: selectGps(groupFiles),
             thumbnail: selectThumbnail(groupFiles),
