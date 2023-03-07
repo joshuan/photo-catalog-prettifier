@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Gallery</title>
+    <style>
+        .item {
+            display: block;
+            width: 160px;
+            height: 160px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            float: left;
+            margin: 0.5em 0.5em 2.5em 0.5em;
+            position: relative;
+            color: inherit;
+        }
+        .item:hover {
+            background-color: #ddd;
+        }
+        .header {
+            clear: both;
+        }
+        .name {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<% function printDate(date) {
+    const utcDate = new Date(date.toUTCString()); // конвертирование даты в UTC
+    const options = { timeZone: process.env.TIMEZONE || 'UTC' }; // название часового пояса
+
+    return utcDate.toLocaleString('ru-RU', options);
+} %>
+
+<div class="list">
+    <% let lastTime = 0 %>
+    <% for (const item of items) { %>
+        <% if (item.date > (lastTime + 60 * 60 * 2)) { %>
+            <h2 class="header"><%= printDate(new Date(item.date * 1000)) %></h2>
+        <% } %>
+        <a href="/gallery/<%= item.thumbnail %>" class="item" id="<%= item.thumbnail %>" style="background-image: url('<%= item.thumbnail %>')">
+            <div class="name"><%= item.files[0].FileName %></div>
+        </a>
+        <% lastTime = item.date %>
+    <% } %>
+</div>
+
+</body>
+</html>

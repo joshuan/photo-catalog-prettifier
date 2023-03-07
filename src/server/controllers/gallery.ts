@@ -4,12 +4,12 @@ import { Database } from '../services/database.js';
 import ejs from 'ejs';
 
 async function getTemplate() {
-    const str = await readFile(`${process.cwd()}/src/server/views/geo.html`);
+    const str = await readFile(`${process.cwd()}/src/server/views/gallery.html`);
 
     return ejs.compile(str, {});
 }
 
-export function geoController(req: Request, res: Response, next: NextFunction) {
+export function galleryController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
 
     Promise.all([

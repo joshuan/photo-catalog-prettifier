@@ -24,7 +24,7 @@
 <div id="map"></div>
 
 <script type="text/javascript">
-    const list = window.list = <%- JSON.stringify(list) %>;
+    const items = window.items = <%- JSON.stringify(items) %>;
     // The ymaps.ready() function will be called when
     // all the API components are loaded and the DOM tree is generated.
     ymaps.ready(init);
@@ -41,7 +41,7 @@
             zoom: 7
         });
 
-        for (const item of list) {
+        for (const item of items) {
             var str2 = new ymaps.Placemark(
                 [item.gps.lat, item.gps.lon],
                 { iconCaption: item.FileName },
@@ -55,7 +55,7 @@
         }
 
         var line1 = new ymaps.Polyline(
-            list.filter((item) => Boolean(item.gps)).map((item) => ([item.gps.lat, item.gps.lon])),
+            items.filter((item) => Boolean(item.gps)).map((item) => ([item.gps.lat, item.gps.lon])),
             {},
             {
                 strokeWidth: 5,
@@ -67,18 +67,16 @@
 </script>
 
 <div class="list">
-    <% for (const item of list) { %>
-        <div class="item" id="<%= item.thumbnailUrl %>" style="clear: left;height:100px;margin-bottom: 0.5em;">
-            <img src="<%= item.thumbnailUrl %>" style="float: left;margin-right: 1em;height:98px;" />
+    <% for (const item of items) { %>
+        <div class="item" id="<%= item.thumbnail %>" style="clear: left;height:100px;margin-bottom: 0.5em;">
+            <img src="<%= item.thumbnail %>" style="float: left;margin-right: 1em;height:98px;" />
             <p>
-                <b><%= item.FileName %></b>
+                <b><%= item.files.map(file => file.FileName).join(', ') %></b>
                 <br />
                 Date: <%= (item.date ? new Date(item.date * 1000) : new Date()).toISOString() %>
-                <br />
-                <%= item.exif.ImageSize %> | <%= item.exif.FileSize %> | <%= item.exif.Duration %>
                 <% if (item.gps) { %>
-                <br />
-                GPS: <%= item.gps.lat %>, <%= item.gps.lon %>
+                    <br />
+                    GPS: <%= item.gps.lat %>, <%= item.gps.lon %>
                 <% } %>
             </p>
         </div>
