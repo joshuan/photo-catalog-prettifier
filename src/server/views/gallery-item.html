@@ -8,7 +8,8 @@
     <style>
         .image {
             display: block;
-            width: 400px;
+            width: 90%;
+            max-width: 1000px;
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -17,6 +18,67 @@
         }
         .header {
             clear: both;
+        }
+
+
+        table {
+            margin-bottom: 1em;
+        }
+        td {
+            width: 300px;
+            border: 1px solid rgba(100,100,100,0.3);
+            padding: 5px;
+            vertical-align: top;
+            position: relative;
+        }
+        td img {
+            height: 100px;
+        }
+        .winner.image {
+            background: lightgreen;
+        }
+        .winner.video {
+            background: lightgoldenrodyellow;
+        }
+        label {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        input {
+            position: absolute;
+            top: 0.5em;
+            right: 0.5em;
+        }
+        input:checked + label {
+            background: lightcoral;
+            opacity: 0.2;
+        }
+        .meta {
+            margin: 0.4em;
+            padding-right: 1.5em;
+            float: right;
+            font-size: 0.8em;
+        }
+        .delimiter {
+            color: lightgray;
+            margin: 0 .5em;
+        }
+        .wrong {
+            color: red;
+        }
+        video {
+            display: block;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 2em;
+        }
+        #map {
+            width: 100%;
+            height: 400px;
         }
     </style>
 </head>
@@ -31,8 +93,58 @@
 
 <div class="list">
     <h2 class="header"><%= printDate(new Date(item.date * 1000)) %></h2>
-    <img class="image" src="<%= item.thumbnail %>" />
+    <% if ( item.files[0].type === 'image' ) { %>
+        <img class="image" src="/original/<%= item.files[0].FileName %>" />
+    <% } else if (item.files[0].type === 'video') { %>
+        <video controls src="/original/<%= item.files[0].FileName %>" />
+    <% } else { %>
+        <p>Wrong type!</p>
+    <% } %>
+    <hr>
+    <table><tr>
+        <% for (const file of item.files) { %>
+            <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>">
+                <span class="meta"><%= file.exif.CompressorName %></span>
+                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.FileName %></b></p>
+                <p class="<%= file.date !== item.date ? 'wrong' : '' %>">Date: <%= file.date ? printDate(new Date(file.date * 1000)) : '' %></p>
+                <p><%= file.exif.ImageSize %> | <%= file.exif.FileSize %> | <%= file.exif.Duration %></p>
+                <% if (file.gps) { %>
+                <p>GPS: <%= file.gps.lat %>, <%= file.gps.lon %></p>
+                <% } %>
+                <img src="<%= file.thumbnailUrl %>" />
+            </td>
+        <% } %>
+    </tr></table>
+    <hr>
+    <% const liveVideo = item.live ? item.files.find(file => file.type === 'video') : null %>
+    <% if (liveVideo) { %>
+        <video controls src="/original/<%= liveVideo.FileName %>" />
+    <% } %>
 </div>
+
+<script src="https://api-maps.yandex.ru/2.1/?apikey=2661b71b-901a-472e-ba03-d64a32a19b38&lang=en_US" type="text/javascript"></script>
+
+<div id="map"></div>
+
+<script type="text/javascript">
+    const item = window.item = <%- JSON.stringify(item) %>;
+    if (item.gps) {
+        ymaps.ready(() => {
+            const map = new ymaps.Map("map", {
+                center: [item.gps.lat, item.gps.lon],
+                zoom: 14,
+            });
+
+            const point = new ymaps.Placemark(
+                [item.gps.lat, item.gps.lon],
+                {iconCaption: item.FileName},
+                {preset: 'islands#blueCircleDotIconWithCaption'}
+            );
+
+            map.geoObjects.add(point);
+        });
+    }
+</script>
 
 </body>
 </html>

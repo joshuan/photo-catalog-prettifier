@@ -19,9 +19,6 @@
             color: inherit;
             text-decoration: none;
         }
-        .item:hover {
-            background-color: #ddd;
-        }
         .header {
             clear: both;
         }
@@ -32,6 +29,12 @@
             left: 0;
             width: 100%;
             text-align: center;
+            margin-top: 0.5em;
+            font-size: 14px;
+            color: #555;
+            height: 2.4em;
+            line-height: 1.2em;
+            overflow: hidden;
         }
         .labels {
             position: absolute;
@@ -42,6 +45,25 @@
         .type {  }
         .live {  }
         .gps {  }
+        .event {
+            clear: both;
+            margin-bottom: 1.5em;
+        }
+        .hover {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: calc(-5px - 2.4em);
+            z-index: -1;
+        }
+        .item:hover .hover {
+            background-color: #ddd;
+        }
+        #map {
+            width: 100%;
+            height: 400px;
+        }
     </style>
 </head>
 <body>
@@ -52,23 +74,75 @@
 
     return utcDate.toLocaleString('ru-RU', options);
 } %>
-
 <div class="list">
     <% let lastTime = 0 %>
-    <% for (const item of items) { %>
-        <% if (item.date > (lastTime + 60 * 60 * 2)) { %>
-            <h2 class="header"><%= printDate(new Date(item.date * 1000)) %></h2>
-        <% } %>
-        <a href="/gallery/<%= item.id %>" class="item" id="<%= item.thumbnail %>" style="background-image: url('<%= item.thumbnail %>')">
-            <span class="labels">
-                <% if (item.type === 'video') { %><span class="type">🎬</span><% } %>
-                <% if (item.live) { %><span class="live">💡</span><% } %>
-            </span>
-            <span class="name"><%= item.files[0].FileName %></span>
-        </a>
-        <% lastTime = item.date %>
+    <% for (const event of events) { %>
+        <div class="event">
+            <h2>
+                <a href="?min=<%= event.times[0] %>&max=<%= event.times[1] %>">
+                    <%= printDate(new Date(event.times[0] * 1000)) %> - <%= printDate(new Date(event.times[1] * 1000)) %>
+                </a>
+            </h2>
+            <% for (const item of event.items) { %>
+                <a href="/gallery/<%= item.id %>" class="item" id="<%= item.thumbnail %>" style="background-image: url('<%= item.thumbnail %>')">
+                    <span class="hover"></span>
+                    <span class="labels">
+                        <% if (item.type === 'video') { %><span class="type">🎬</span><% } %>
+                        <% if (item.live) { %><span class="live">💡</span><% } %>
+                        <% if (item.gps) { %><span class="gps">🛰</span><% } %>
+                    </span>
+                    <span class="name"><%= item.files[0].FileName %></span>
+                </a>
+            <% } %>
+            <div style="clear: both;"></div>
+        </div>
     <% } %>
 </div>
+
+<script src="https://api-maps.yandex.ru/2.1/?apikey=2661b71b-901a-472e-ba03-d64a32a19b38&lang=en_US" type="text/javascript"></script>
+
+<div id="map"></div>
+
+<% const allItems = events.reduce((acc, event) => acc.concat(event.items), []).filter(i => i.gps); %>
+
+<script type="text/javascript">
+    const items = window.items = <%- JSON.stringify(allItems) %>;
+    ymaps.ready(init);
+    function init(){
+        var myMap = new ymaps.Map("map", {
+            center: [25.063383, 56.203139],
+            zoom: 7
+        });
+
+        var myCollection = new ymaps.GeoObjectCollection();
+
+        for (const item of items) {
+            var str2 = new ymaps.Placemark(
+                [item.gps.lat, item.gps.lon],
+                { iconCaption: item.FileName },
+                { preset: 'islands#blueCircleDotIconWithCaption' }
+            );
+            str2.events.add('click', (e) => {
+                document.getElementById(item.thumbnail).scrollIntoView();
+            });
+
+            myCollection.add(str2);
+        }
+
+        myMap.geoObjects.add(myCollection);
+        myMap.setBounds(myCollection.getBounds());
+
+        var line1 = new ymaps.Polyline(
+            items.filter((item) => Boolean(item.gps)).map((item) => ([item.gps.lat, item.gps.lon])),
+            {},
+            {
+                strokeWidth: 2,
+                strokeColor: "#e61b1b"
+            }
+        );
+        myMap.geoObjects.add(line1);
+    }
+</script>
 
 </body>
 </html>
