@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import { resolveByRoot } from '../lib/path.js';
 import { galleryController, galleryItemController } from './controllers/gallery.js';
 import { geoController } from './controllers/geo.js';
-import { groupController, deleteGroupController } from './controllers/group.js';
+import { groupController, groupOperationController } from './controllers/group.js';
 import { mainController } from './controllers/main.js';
 import { timelineController } from './controllers/timeline.js';
 import loggerMiddleware from './middlewares/logger.js';
@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded());
 
 app.get('/', mainController);
 app.get('/groups', groupController);
-app.post('/groups', deleteGroupController);
+app.post('/groups', groupOperationController);
 app.get('/timeline', timelineController);
 app.get('/gallery', galleryController);
 app.get('/gallery/:id', galleryItemController);

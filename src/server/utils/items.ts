@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { TFilesItem } from './files.js';
+import { groupFiles } from './group.js';
 import { sortImages, sortVideos } from './sort.js';
 
 export type TDataItem = {
@@ -41,27 +42,16 @@ function selectType(files: TFilesItem[]): TFilesItem['type'] {
 }
 
 function selectLive(files: TFilesItem[]): boolean {
-    return true;
+    const images = files.filter(file => file.type === 'image');
+    const videos = files.filter(file => file.type === 'video');
+
+    return images.length > 0 && videos.length > 0;
 }
 
 export async function buildItems(files: TFilesItem[]): Promise<TDataItem[]> {
-    const filesWithGroup = files.filter(file => Boolean(file.groupId));
-    const filesWithoutGroup = files.filter(file => !Boolean(file.groupId));
-    const groups = _.groupBy(filesWithGroup, 'groupId');
+    const groups = groupFiles(files);
 
     const data: TDataItem[] = [];
-
-    for (const file of filesWithoutGroup) {
-        data.push({
-            id: file.FileName,
-            date: file.date,
-            gps: file.gps,
-            thumbnail: file.thumbnailUrl,
-            type: file.type,
-            live: false,
-            files: [{ ...file, win: true }],
-        });
-    }
 
     for (const groupId in groups) {
         const groupFiles = sortFiles(groups[groupId]);

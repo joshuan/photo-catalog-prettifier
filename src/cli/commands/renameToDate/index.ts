@@ -1,7 +1,7 @@
 import { Argv } from 'yargs';
 import { ColonDate, TimeZone } from '../../../lib/date.js';
+import { getOriginalSourceFilename } from '../../../lib/filename.js';
 import { rename } from '../../../lib/fs.js';
-import { getBasename, getExt } from '../../../lib/path.js';
 import { Database } from '../../../server/services/database.js';
 
 export const command = 'renameToDate <path>';
@@ -33,18 +33,6 @@ export function builder(argv: Argv): Argv<RenameToDateArguments> {
 }
 
 const names = new Set<string>();
-
-function getOriginalSourceFilename(src: string): string {
-    const ext = getExt(src);
-    const RE = new RegExp('^\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\s{1}(.*)' + ext + '$');
-    const found = RE.exec(src);
-
-    if (found !== null) {
-        return found[1] + ext;
-    }
-
-    return src;
-}
 
 export function createFilename(src: string, date: ColonDate, add = 0): string {
     const dateString = date.clone().plus({ second: add }).setZone(TimeZone.Moscow).toFormat('yyyy-MM-dd_HH-mm-ss');

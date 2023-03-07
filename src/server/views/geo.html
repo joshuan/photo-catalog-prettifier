@@ -41,6 +41,8 @@
             zoom: 7
         });
 
+        var myCollection = new ymaps.GeoObjectCollection();
+
         for (const item of items) {
             var str2 = new ymaps.Placemark(
                 [item.gps.lat, item.gps.lon],
@@ -48,18 +50,21 @@
                 { preset: 'islands#blueCircleDotIconWithCaption' }
             );
             str2.events.add('click', (e) => {
-                document.getElementById(item.thumbnailUrl).scrollIntoView();
+                document.getElementById(item.thumbnail).scrollIntoView();
             });
 
-            myMap.geoObjects.add(str2);
+            myCollection.add(str2);
         }
+
+        myMap.geoObjects.add(myCollection);
+        myMap.setBounds(myCollection.getBounds());
 
         var line1 = new ymaps.Polyline(
             items.filter((item) => Boolean(item.gps)).map((item) => ([item.gps.lat, item.gps.lon])),
             {},
             {
-                strokeWidth: 5,
-                strokeColor: "#e6761b"
+                strokeWidth: 2,
+                strokeColor: "#e61b1b"
             }
         );
         myMap.geoObjects.add(line1);

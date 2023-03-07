@@ -13,7 +13,7 @@ function parseGeoPoint(gps: string): string {
     const seconds = parseFloat(found[3]);
     const isPositive: boolean = ['N', 'E'].includes(found[4]);
 
-    return ((degrees + minutes/60 + seconds/3600) * (isPositive ? 1 : -1)).toFixed(3);
+    return ((degrees + minutes/60 + seconds/3600) * (isPositive ? 1 : -1)).toFixed(6);
 }
 
 export function buildGps(item: { GPSLatitude?: string; GPSLongitude?: string; }) {

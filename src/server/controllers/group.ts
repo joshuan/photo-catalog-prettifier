@@ -17,16 +17,24 @@ export function groupController(req: Request, res: Response, next: NextFunction)
         .catch((err) => next(err));
 }
 
-export function deleteGroupController(req: Request, res: Response, next: NextFunction) {
+export function groupOperationController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
-    const files = ((req.body?.file || []) as string[]).map(file => database.getFile(file));
+    const operation = req.body.operation;
+    const files = ((req.body?.files || []) as string[]).map(file => database.getFile(file));
 
-    for (const file of files) {
-        fs.renameSync(
-            joinPath(file.SourceFile),
-            resolveByRoot('database/trash', file.FileName),
-        );
+    if (operation === 'delete') {
+        for (const file of files) {
+            fs.renameSync(
+                joinPath(file.SourceFile),
+                resolveByRoot('database/trash', file.FileName),
+            );
+            console.log(`- remove ${file.SourceFile}`);
+        }
+        // clear database cache
+        res.redirect('/groups');
+    } else if (operation === 'ungroup') {
+        next(new Error('TODO: Ungrouped!'));
+    } else {
+        next(new Error('Broken operation!'));
     }
-
-    res.send(files.map(file => file.SourceFile));
 }

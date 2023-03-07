@@ -17,6 +17,7 @@
             margin: 0.5em 0.5em 2.5em 0.5em;
             position: relative;
             color: inherit;
+            text-decoration: none;
         }
         .item:hover {
             background-color: #ddd;
@@ -25,12 +26,22 @@
             clear: both;
         }
         .name {
+            display: block;
             position: absolute;
             top: 100%;
             left: 0;
             width: 100%;
             text-align: center;
         }
+        .labels {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+        }
+        .type {  }
+        .live {  }
+        .gps {  }
     </style>
 </head>
 <body>
@@ -49,7 +60,11 @@
             <h2 class="header"><%= printDate(new Date(item.date * 1000)) %></h2>
         <% } %>
         <a href="/gallery/<%= item.id %>" class="item" id="<%= item.thumbnail %>" style="background-image: url('<%= item.thumbnail %>')">
-            <div class="name"><%= item.files[0].FileName %></div>
+            <span class="labels">
+                <% if (item.type === 'video') { %><span class="type">🎬</span><% } %>
+                <% if (item.live) { %><span class="live">💡</span><% } %>
+            </span>
+            <span class="name"><%= item.files[0].FileName %></span>
         </a>
         <% lastTime = item.date %>
     <% } %>
