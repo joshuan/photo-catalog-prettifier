@@ -1,6 +1,6 @@
-import { isFileExist } from './fs.js';
-import { getBasename, joinPath } from './path.js';
-import { Thumbnailable } from './thumbnailable.js';
+import { isFileExist } from '../utils/fs.js';
+import { getBasename, joinPath } from '../utils/path.js';
+import { Thumbnailable } from './Thumbnailable.js';
 
 export class Convert extends Thumbnailable {
     constructor() {

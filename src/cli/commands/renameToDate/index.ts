@@ -1,7 +1,7 @@
 import { Argv } from 'yargs';
-import { ColonDate, TimeZone } from '../../../lib/date.js';
-import { getOriginalSourceFilename } from '../../../lib/filename.js';
-import { rename } from '../../../lib/fs.js';
+import { ColonDate, TimeZone } from '../../../lib/ColonDate.js';
+import { getOriginalSourceFilename } from '../../../utils/filename.js';
+import { rename } from '../../../utils/fs.js';
 import { Database } from '../../../server/services/database.js';
 
 export const command = 'renameToDate <path>';

@@ -1,6 +1,6 @@
-import { debugUtil } from '../../lib/debug.js';
-import { readJson, writeJson } from '../../lib/fs.js';
-import { resolveByRoot } from '../../lib/path.js';
+import { debugUtil } from '../../utils/debug.js';
+import { readJson, writeJson } from '../../utils/fs.js';
+import { resolveByRoot } from '../../utils/path.js';
 
 const debug = debugUtil('databaseCache');
 

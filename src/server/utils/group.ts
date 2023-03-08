@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import _ from 'lodash';
-import { getOriginalSourceFilename } from '../../lib/filename.js';
+import { getOriginalSourceFilename } from '../../utils/filename.js';
 
 export interface IGroupFile {
     FileName: string;

@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { resolveByRoot } from '../lib/path.js';
+import { resolveByRoot } from '../utils/path.js';
 import { galleryController, galleryItemController } from './controllers/gallery.js';
 import { geoController } from './controllers/geo.js';
 import { groupController, groupOperationController } from './controllers/group.js';

@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
 import md5File from 'md5-file';
-import { ExifTool } from '../../../lib/exiftool.js';
+import { Exiftool } from '../../../lib/Exiftool.js';
 
 export const command = 'findSimilar <path>';
 export const description = 'Find similar photos';
@@ -30,7 +30,7 @@ interface IPartData {
 }
 
 function getData(path: string): Promise<IPartData[]> {
-    const tool = new ExifTool(path);
+    const tool = new Exiftool(path);
     return tool.getFiles();
 }
 

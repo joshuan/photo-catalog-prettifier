@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
-import { readDir, rename } from '../../../lib/fs.js';
-import { getBasename, getExt } from '../../../lib/path.js';
+import { readDir, rename } from '../../../utils/fs.js';
+import { getBasename, getExt } from '../../../utils/path.js';
 
 export const command = 'lowerExt <path>';
 export const description = 'Rename files to lower extensions';

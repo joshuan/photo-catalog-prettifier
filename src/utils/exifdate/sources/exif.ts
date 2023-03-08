@@ -1,4 +1,4 @@
-import { ColonDate, TimeZone } from '../../date.js';
+import { ColonDate, TimeZone } from '../../../lib/ColonDate.js';
 import { debugUtil } from '../../debug.js';
 
 const debug = debugUtil('renameToDate:exif');

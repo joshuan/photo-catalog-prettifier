@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
-import { rename } from '../../../lib/fs.js';
-import { getBasename, getExt } from '../../../lib/path.js';
+import { rename } from '../../../utils/fs.js';
+import { getBasename, getExt } from '../../../utils/path.js';
 import { Database } from '../../../server/services/database.js';
 
 export const command = 'groupLivePhotos <path>';

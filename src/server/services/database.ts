@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
-import { Compare } from '../../lib/compare.js';
-import { debugUtil } from '../../lib/debug.js';
-import { getBasename } from '../../lib/path.js';
+import { Compare } from '../../lib/Compare.js';
+import { debugUtil } from '../../utils/debug.js';
+import { getBasename } from '../../utils/path.js';
 import { buildFiles, TFilesItem, TFilesMap } from '../utils/files.js';
 import { buildItems, TDataItem } from '../utils/items.js';
 import { DatabaseCache } from './cache.js';

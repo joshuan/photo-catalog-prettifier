@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { debugUtil } from './debug.js';
+import { debugUtil } from '../utils/debug.js';
 
 export enum TimeZone {
     UTC = 'UTC',

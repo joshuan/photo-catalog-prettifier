@@ -1,8 +1,8 @@
 import { Argv } from 'yargs';
 import md5File from 'md5-file';
 import _ from 'lodash';
-import { ExifTool } from '../../../lib/exiftool.js';
-import { deleteFile } from '../../../lib/fs.js';
+import { Exiftool } from '../../../lib/Exiftool.js';
+import { deleteFile } from '../../../utils/fs.js';
 
 export const command = 'removeFullDuplicates <path>';
 export const description = 'Find and remove all full duplicates (compare by hash from file)';
@@ -32,7 +32,7 @@ interface IPartData {
 }
 
 function getData(path: string): Promise<IPartData[]> {
-    const tool = new ExifTool(path);
+    const tool = new Exiftool(path);
     return tool.getFiles();
 }
 

@@ -1,4 +1,4 @@
-import { ColonDate } from '../date.js';
+import { ColonDate } from '../../lib/ColonDate.js';
 import { debugUtil } from '../debug.js';
 import { getDateFromGps } from './sources/gps.js';
 import { getDateFromExif } from './sources/exif.js';

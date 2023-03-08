@@ -1,5 +1,5 @@
 import { Executable } from './Executable.js';
-import { getBasename, getExt, joinPath, resolveByRoot } from './path.js';
+import { getBasename, getExt, joinPath, resolveByRoot } from '../utils/path.js';
 
 export class Thumbnailable extends Executable {
     protected thumbnailSize: string = '160';

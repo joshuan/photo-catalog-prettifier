@@ -1,7 +1,7 @@
 import { Argv } from 'yargs';
-import { ExifTool } from '../../../lib/exiftool.js';
-import { readDir, rename } from '../../../lib/fs.js';
-import { getBasename, getExt } from '../../../lib/path.js';
+import { Exiftool } from '../../../lib/Exiftool.js';
+import { readDir, rename } from '../../../utils/fs.js';
+import { getBasename, getExt } from '../../../utils/path.js';
 
 export const command = 'removeCopyNames <path>';
 export const description = 'Remove copies index from filename';
@@ -31,7 +31,7 @@ interface IPartData {
 }
 
 function getData(path: string): Promise<IPartData[]> {
-    const tool = new ExifTool(path);
+    const tool = new Exiftool(path);
     return tool.getFiles();
 }
 

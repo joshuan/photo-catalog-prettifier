@@ -1,6 +1,6 @@
-import { debugUtil } from './debug.js';
+import { debugUtil } from '../utils/debug.js';
 import { Executable } from './Executable.js';
-import { fileStat } from './fs.js';
+import { fileStat } from '../utils/fs.js';
 
 const debug = debugUtil('exiftool');
 
@@ -517,7 +517,7 @@ export type IExifPartialData<T extends TAvailableFields = TAvailableFields> = IB
 export type IExifRequiredData<TRequired extends TAvailableFields = TAvailableFields> = IBaseData & Pick<IRequestedData, TRequired>;
 export type IExifData<TRequired extends TAvailableFields = TAvailableFields, TPartial extends TAvailableFields = TAvailableFields> = IExifPartialData<TPartial> & IExifRequiredData<TRequired>;
 
-export class ExifTool extends Executable {
+export class Exiftool extends Executable {
     constructor(private readonly path: string) {
         super('exiftool');
     }
@@ -564,7 +564,7 @@ export class ExifTool extends Executable {
         } as IExifRequiredData<T>;
 
         for (const key of fields) {
-            result[key] = ExifTool.validateField(item, key);
+            result[key] = Exiftool.validateField(item, key);
         }
 
         return result;
@@ -573,7 +573,7 @@ export class ExifTool extends Executable {
     async getData<T extends TAvailableFields>(fields: T[]): Promise<IExifRequiredData<T>[]> {
         const data = await this.execJson(fields);
 
-        return data.map((item) => ExifTool.validateData(item, fields));
+        return data.map((item) => Exiftool.validateData(item, fields));
     }
 
     async getFiles() {

@@ -1,5 +1,5 @@
 import { Argv } from 'yargs';
-import { ExifTool } from '../../../lib/exiftool.js';
+import { Exiftool } from '../../../lib/Exiftool.js';
 
 export const command = 'saveOriginalNameToComment <path>';
 export const description = 'Save original file name to comment in all files from path';
@@ -25,7 +25,7 @@ export function builder(argv: Argv): Argv<ISaveOriginNameToCommentArguments> {
 
 export async function handler(argv: ISaveOriginNameToCommentArguments) {
     const ROOT = argv.path;
-    const tool = new ExifTool(ROOT);
+    const tool = new Exiftool(ROOT);
     const data = await tool.getData(['FileName', 'Comment']);
 
     for (const item of data) {

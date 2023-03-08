@@ -1,9 +1,9 @@
-import { Convert } from '../../../lib/convert.js';
-import { ExifTool, IExifRequiredData } from '../../../lib/exiftool.js';
-import { Ffmpeg } from '../../../lib/ffmpeg.js';
+import { Convert } from '../../../lib/Convert.js';
+import { Exiftool, IExifRequiredData } from '../../../lib/Exiftool.js';
+import { Ffmpeg } from '../../../lib/Ffmpeg.js';
 
 export async function buildThumbnail(item: IExifRequiredData<'Directory' | 'FileName' | 'MIMEType'>): Promise<string> {
-    const type = ExifTool.getType(item.MIMEType);
+    const type = Exiftool.getType(item.MIMEType);
 
     switch (type) {
         case 'image':

@@ -1,8 +1,8 @@
 import { buildThumbnail } from '../../cli/commands/buildData/thumbnail.js';
-import { buildDate } from '../../lib/exifdate/index.js';
-import { ExifTool, IExifPartialData, IExifRequiredData } from '../../lib/exiftool.js';
-import { buildGps } from '../../lib/gps.js';
-import { getBasename } from '../../lib/path.js';
+import { buildDate } from '../../utils/exifdate/index.js';
+import { Exiftool, IExifPartialData, IExifRequiredData } from '../../lib/Exiftool.js';
+import { buildGps } from '../../utils/gps.js';
+import { getBasename } from '../../utils/path.js';
 
 export type TFilesItem = {
     SourceFile: IExifRequiredData['SourceFile'],
@@ -30,7 +30,7 @@ interface IBuildFilesOptions {
 
 export async function buildFiles(path: string, options: IBuildFilesOptions = {}): Promise<TFilesMap> {
     const { useThumbnails = true } = options;
-    const tool = new ExifTool(path);
+    const tool = new Exiftool(path);
     const files = await tool.getFullData();
     const data: TFilesMap = {};
 
@@ -47,10 +47,10 @@ export async function buildFiles(path: string, options: IBuildFilesOptions = {})
             thumbnailFile: thumbnail,
             gps: buildGps(file),
             thumbnailUrl: thumbnail ? `/thumbnails/${getBasename(thumbnail)}` : null,
-            type: ExifTool.getType(file.MIMEType),
-            groupId: ExifTool.getGroupId(file),
-            size: await ExifTool.calcFileSize(file),
-            imageSize: ExifTool.calcImageSize(file),
+            type: Exiftool.getType(file.MIMEType),
+            groupId: Exiftool.getGroupId(file),
+            size: await Exiftool.calcFileSize(file),
+            imageSize: Exiftool.calcImageSize(file),
         };
     }
 

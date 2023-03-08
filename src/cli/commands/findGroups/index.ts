@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
 import _ from 'lodash';
-import { ExifTool, IExifPartialData, IExifRequiredData, TAvailableFields } from '../../../lib/exiftool.js';
+import { Exiftool, IExifPartialData, IExifRequiredData, TAvailableFields } from '../../../lib/Exiftool.js';
 
 export const command = 'findGroups <path>';
 export const description = 'Find group of photos';
@@ -43,17 +43,17 @@ interface IData extends IExifRequiredData<typeof fields[number]> {
 }
 
 async function getData(path: string): Promise<IData[]> {
-    const tool = new ExifTool(path);
+    const tool = new Exiftool(path);
     const data = await tool.getPartialData(rawFields);
 
     return data
         .filter((item) => Boolean(item.MediaGroupUUID || item.ContentIdentifier))
         .map((item) => {
-            const mimeType = ExifTool.validateField(item, 'MIMEType');
+            const mimeType = Exiftool.validateField(item, 'MIMEType');
 
             return {
-                ...ExifTool.validateData(item, fields),
-                type: ExifTool.getType(mimeType),
+                ...Exiftool.validateData(item, fields),
+                type: Exiftool.getType(mimeType),
                 groupUuid: item.MediaGroupUUID || item.ContentIdentifier || '',
             };
         });

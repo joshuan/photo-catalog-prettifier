@@ -1,5 +1,5 @@
 import { execaSync } from 'execa';
-import { debugUtil, Debugger } from './debug.js';
+import { debugUtil, Debugger } from '../utils/debug.js';
 
 export class Executable {
     protected readonly debug: Debugger;
