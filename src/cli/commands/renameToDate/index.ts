@@ -9,7 +9,6 @@ export const description = 'Rename file to calculated date';
 
 interface RenameToDateArguments {
     path: string;
-    defaultPhotoOffset: string;
     dryRun: boolean;
 }
 
@@ -19,11 +18,6 @@ export function builder(argv: Argv): Argv<RenameToDateArguments> {
             desc: 'Path to folder with photos',
             type: 'string',
             demandOption: 'Folder is required parameter',
-        })
-        .option('defaultPhotoOffset', {
-            desc: 'Offset for photo by default (example: +05:00)',
-            type: 'string',
-            default: '+00:00',
         })
         .option('dryRun', {
             type: 'boolean',
@@ -35,7 +29,9 @@ export function builder(argv: Argv): Argv<RenameToDateArguments> {
 const names = new Set<string>();
 
 export function createFilename(src: string, date: ColonDate, add = 0): string {
-    const dateString = date.clone().plus({ second: add }).setZone(TimeZone.Moscow).toFormat('yyyy-MM-dd_HH-mm-ss');
+    const dateString = date.clone().plus({ second: add })
+        .setZone(process.env.TIMEZONE)
+        .toFormat('yyyy-MM-dd_HH-mm-ss');
 
     const result = dateString + ' ' + src;
 

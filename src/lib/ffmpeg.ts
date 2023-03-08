@@ -17,7 +17,7 @@ export class Ffmpeg extends Thumbnailable {
         // ffmpeg -i input_video.mp4 -ss 00:00:05 -vframes 1 -s 400x400 -q:v 2 output_thumbnail.jpg
         this.exec([
             '-i', joinPath(root, filename),
-            '-ss', '00:00:01',
+            '-ss', '00:00:00',
             '-vframes', '1',
             // '-s', this.thumbnailSize,
             '-vf', `scale=${this.thumbnailSize}:-2`,

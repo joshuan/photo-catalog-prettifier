@@ -2,7 +2,7 @@ import { execaSync } from 'execa';
 import { debugUtil, Debugger } from './debug.js';
 
 export class Executable {
-    private readonly debug: Debugger;
+    protected readonly debug: Debugger;
 
     constructor(private readonly util: string) {
         this.debug = debugUtil(util);

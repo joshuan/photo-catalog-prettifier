@@ -30,8 +30,12 @@ export function groupOperationController(req: Request, res: Response, next: Next
             );
             console.log(`- remove ${file.SourceFile}`);
         }
-        // clear database cache
-        res.redirect('/groups');
+        Database.init(database.path, { useCache: false, useThumbnails: true })
+            .then(newDatabase => {
+                req.app.set('database', newDatabase);
+                res.redirect('/groups');
+            })
+            .catch(err => next(err));
     } else if (operation === 'ungroup') {
         next(new Error('TODO: Ungrouped!'));
     } else {

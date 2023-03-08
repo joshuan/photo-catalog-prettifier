@@ -29,11 +29,26 @@ function calcMinTime(list: { date: number; }[]): number {
     return roundFloorTime(list.reduce((acc, item) => item.date < acc ? item.date : acc, Date.now()));
 }
 
+function filterItemsByQuery(query: Request['query']) {
+    const min = parseInt(query.min as string || '0', 10);
+    const max = parseInt(query.max as string || '0', 10);
+    return function filterItems<T extends { date?: number; }>(items: T[]): T[] {
+        if (!min && !max) { return items; }
+        return items.filter(({ date }) => {
+            if (!date) { return false; }
+            if (min && date < min) { return false; }
+            if (max && date > max) { return false; }
+            return true;
+        });
+    }
+}
+
 export function timelineController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
 
     Promise.all([
-        database.getItems(),
+        database.getItems()
+            .then(filterItemsByQuery(req.query)),
         getTemplate('timeline'),
     ])
         .then(([list, template]) => {

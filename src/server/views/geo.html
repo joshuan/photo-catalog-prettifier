@@ -23,6 +23,8 @@
 
 <div id="map"></div>
 
+<% items = items.filter((item) => item.type === 'video') %>
+
 <script type="text/javascript">
     const items = window.items = <%- JSON.stringify(items) %>;
     // The ymaps.ready() function will be called when
@@ -79,6 +81,8 @@
                 <b><%= item.files.map(file => file.FileName).join(', ') %></b>
                 <br />
                 Date: <%= (item.date ? new Date(item.date * 1000) : new Date()).toISOString() %>
+                <br />
+                <%= item.files[0].exif.ImageSize %> | <%= item.files[0].exif.FileSize %> | <%= item.files[0].exif.Duration %>
                 <% if (item.gps) { %>
                     <br />
                     GPS: <%= item.gps.lat %>, <%= item.gps.lon %>

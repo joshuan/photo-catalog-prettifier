@@ -19,19 +19,20 @@ export type TFilesItem = {
     size: number;
     imageSize: number;
     win?: true;
+    compareHash?: string;
 };
 
-export type TFilesList = Record<string, TFilesItem>;
+export type TFilesMap = Record<string, TFilesItem>;
 
 interface IBuildFilesOptions {
     useThumbnails?: boolean;
 }
 
-export async function buildFiles(path: string, options: IBuildFilesOptions = {}): Promise<TFilesList> {
+export async function buildFiles(path: string, options: IBuildFilesOptions = {}): Promise<TFilesMap> {
     const { useThumbnails = true } = options;
     const tool = new ExifTool(path);
     const files = await tool.getFullData();
-    const data: TFilesList = {};
+    const data: TFilesMap = {};
 
     for (const file of files) {
         const thumbnail = useThumbnails ? await buildThumbnail(file) : null;

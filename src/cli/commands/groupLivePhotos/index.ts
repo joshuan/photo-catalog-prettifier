@@ -59,6 +59,7 @@ export async function handler(argv: IGroupLivePhotosArguments) {
             image = item.files[1];
             video = item.files[0];
         } else {
+            console.error(item);
             throw new Error('Broken pair', { cause: item });
         }
 
@@ -66,7 +67,7 @@ export async function handler(argv: IGroupLivePhotosArguments) {
         const dest = calcRename(image.FileName, video.FileName, argv.suffix);
 
         if (src !== dest) {
-            console.log('-', { src, dest });
+            console.log('-', src, '->', dest);
             if (!argv.dryRun) {
                 await rename(argv.path, src, dest);
             }
