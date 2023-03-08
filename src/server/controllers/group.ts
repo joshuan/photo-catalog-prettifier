@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'node:fs';
 import { joinPath, resolveByRoot } from '../../utils/path.js';
-import { Database } from '../services/database.js';
-import { getTemplate } from '../utils/template.js';
+import { Database } from '../../lib/Database.js';
+import { getTemplate } from '../../utils/template.js';
 
 export function groupController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;

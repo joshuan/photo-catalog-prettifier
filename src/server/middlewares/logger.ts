@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import pino from 'pino';
 import { pinoHttp } from 'pino-http';
-import { logger } from '../services/logger.js';
+import { logger } from '../logger.js';
 
 const httpLogger = pinoHttp({
     logger,

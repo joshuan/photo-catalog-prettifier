@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { Database } from '../services/database.js';
-import { TDataItem } from '../utils/items.js';
-import { getTemplate } from '../utils/template.js';
+import { Database } from '../../lib/Database.js';
+import { TDataItem } from '../../utils/items.js';
+import { getTemplate } from '../../utils/template.js';
 
 interface IEventGallery {
     times: [number, number];

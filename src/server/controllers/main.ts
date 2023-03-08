@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Database } from '../services/database.js';
+import { Database } from '../../lib/Database.js';
 
 export function mainController(req: Request, res: Response) {
     const database = req.app.get('database') as Database;

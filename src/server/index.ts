@@ -1,6 +1,6 @@
 import { buildApp } from './app.js';
 import { getPath, initArguments } from '../utils/argv.js';
-import { Database } from './services/database.js';
+import { Database } from '../lib/Database.js';
 
 const port = process.env.PORT || 3000;
 

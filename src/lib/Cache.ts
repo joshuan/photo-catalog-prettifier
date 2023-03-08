@@ -1,10 +1,10 @@
-import { debugUtil } from '../../utils/debug.js';
-import { readJson, writeJson } from '../../utils/fs.js';
-import { resolveByRoot } from '../../utils/path.js';
+import { debugUtil } from '../utils/debug.js';
+import { readJson, writeJson } from '../utils/fs.js';
+import { resolveByRoot } from '../utils/path.js';
 
 const debug = debugUtil('databaseCache');
 
-export class DatabaseCache<T> {
+export class Cache<T> {
     private cache: T | null = null;
     private cacheName: string;
 

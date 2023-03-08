@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { Database } from '../services/database.js';
-import { getTemplate } from '../utils/template.js';
+import { Database } from '../../lib/Database.js';
+import { getTemplate } from '../../utils/template.js';
 
 function roundFloorTime(time: number) {
     const date = new Date(time * 1000);

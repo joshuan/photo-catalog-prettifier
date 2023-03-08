@@ -1,10 +1,10 @@
 import { v4 as uuid } from 'uuid';
-import { Compare } from '../../lib/Compare.js';
-import { debugUtil } from '../../utils/debug.js';
-import { getBasename } from '../../utils/path.js';
+import { Compare } from './Compare.js';
+import { debugUtil } from '../utils/debug.js';
+import { getBasename } from '../utils/path.js';
 import { buildFiles, TFilesItem, TFilesMap } from '../utils/files.js';
 import { buildItems, TDataItem } from '../utils/items.js';
-import { DatabaseCache } from './cache.js';
+import { Cache } from './Cache.js';
 import pLimit from 'p-limit';
 import os from 'os';
 
@@ -83,7 +83,7 @@ export class Database {
 
         debug('Database init with path %s', path);
 
-        const cache = new DatabaseCache<TData>(getBasename(path));
+        const cache = new Cache<TData>(getBasename(path));
 
         let data = useCache ? await cache.get() : undefined;
 

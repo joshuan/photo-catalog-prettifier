@@ -1,4 +1,4 @@
-import { Database } from '../../../server/services/database.js';
+import { Database } from '../../../lib/Database.js';
 
 export const command = 'buildData <path>';
 export const description = 'Build collection data from path folder';

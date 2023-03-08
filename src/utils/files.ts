@@ -1,8 +1,8 @@
-import { buildThumbnail } from '../../cli/commands/buildData/thumbnail.js';
-import { buildDate } from '../../utils/exifdate/index.js';
-import { Exiftool, IExifPartialData, IExifRequiredData } from '../../lib/Exiftool.js';
-import { buildGps } from '../../utils/gps.js';
-import { getBasename } from '../../utils/path.js';
+import { buildThumbnail } from '../cli/commands/buildData/thumbnail.js';
+import { buildDate } from './exifdate/index.js';
+import { Exiftool, IExifPartialData, IExifRequiredData } from '../lib/Exiftool.js';
+import { buildGps } from './gps.js';
+import { getBasename } from './path.js';
 
 export type TFilesItem = {
     SourceFile: IExifRequiredData['SourceFile'],

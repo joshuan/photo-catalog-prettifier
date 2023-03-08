@@ -1,7 +1,7 @@
 import { Argv } from 'yargs';
 import { rename } from '../../../utils/fs.js';
 import { getBasename, getExt } from '../../../utils/path.js';
-import { Database } from '../../../server/services/database.js';
+import { Database } from '../../../lib/Database.js';
 
 export const command = 'groupLivePhotos <path>';
 export const description = 'Group live photos and videos by as name';
