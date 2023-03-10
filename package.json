@@ -8,7 +8,7 @@
     "build": "rm -rf build; tsc -p .",
     "watch": "tsc -p . --watch",
     "test": "jest src",
-    "test:dev": "DEBUG={DEBUG:-'photo-catalog-prettifier:*'} jest src --watch",
+    "test:dev": "DEBUG={DEBUG:-'pcp:*'} jest src --watch",
     "validate": "tsc -p . --noEmit",
     "cli": "env $(cat .env | xargs) ts-node --esm src/cli/index.ts",
     "buildData": "npm run cli buildData",

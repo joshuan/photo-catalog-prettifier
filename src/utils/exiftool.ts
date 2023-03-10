@@ -1,8 +1,4 @@
-import { debugUtil } from '../utils/debug.js';
-import { Executable } from './Executable.js';
-import { fileStat } from '../utils/fs.js';
-
-const debug = debugUtil('exiftool');
+import { exec } from './exec.js';
 
 interface IBaseData {
     SourceFile: string;                                 // '/Users/username/photos/IMG_1442.heic'
@@ -513,95 +509,26 @@ interface IRequestedData {
 
 export type TAvailableFields = keyof IRequestedData;
 
-export type IExifPartialData<T extends TAvailableFields = TAvailableFields> = IBaseData & Partial<Pick<IRequestedData, T>>;
-export type IExifRequiredData<TRequired extends TAvailableFields = TAvailableFields> = IBaseData & Pick<IRequestedData, TRequired>;
-export type IExifData<TRequired extends TAvailableFields = TAvailableFields, TPartial extends TAvailableFields = TAvailableFields> = IExifPartialData<TPartial> & IExifRequiredData<TRequired>;
+export type IExifPartialData<T extends TAvailableFields = TAvailableFields>
+    = IBaseData & Partial<Pick<IRequestedData, T>>;
+export type IExifRequiredData<TRequired extends TAvailableFields = TAvailableFields>
+    = IBaseData & Pick<IRequestedData, TRequired>;
+export type IExifData<TRequired extends TAvailableFields = TAvailableFields, TPartial extends TAvailableFields = TAvailableFields>
+    = IExifPartialData<TPartial> & IExifRequiredData<TRequired>;
 
-export class Exiftool extends Executable {
-    constructor(private readonly path: string) {
-        super('exiftool');
-    }
+export async function exiftoolGetter<
+    P extends TAvailableFields = TAvailableFields,
+    R extends TAvailableFields = 'FileName',
+>(path: string, params: R[] = []): Promise<IExifData<R, P>[]> {
+    const result = await exiftool([
+        '-json',
+        ...(params.map(param => `-${param}`)),
+        path,
+    ]);
 
-    private async execJson<T extends TAvailableFields = TAvailableFields>(fields: T[] = []): Promise<IExifPartialData<T>[]> {
-        const result = await this.exec(['-json', ...(fields.map(x => `-${x}`)), this.path]);
+    return JSON.parse(result);
+}
 
-        let data = [] as IExifPartialData<T>[];
-
-        if (result !== '') {
-            try {
-                data = JSON.parse(result) as IExifPartialData<T>[];
-            } catch (err) {
-                throw new Error('Can not parse stdout', { cause: result });
-            }
-        }
-
-        debug('Parsed %d data.', data.length);
-
-        return data;
-    }
-
-    public static validateField<T extends TAvailableFields>(data: IExifPartialData<T>, field: T): IExifRequiredData<T>[T] {
-        if (typeof data[field] !== 'undefined') {
-            throw new Error(`Field ${field} is required.`);
-        }
-
-        return data[field] as IExifRequiredData<T>[T];
-    }
-
-    async getFullData(): Promise<IExifData<'FileName' | 'Directory' | 'MIMEType'>[]> {
-        const data = await this.execJson();
-
-        return data as IExifData<'FileName' | 'Directory' | 'MIMEType'>[];
-    }
-
-    async getPartialData<T extends TAvailableFields>(fields: T[]): Promise<IExifPartialData<T>[]> {
-        return await this.execJson(fields);
-    }
-
-    public static validateData<T extends TAvailableFields>(item: IExifPartialData<T>, fields: T[]): IExifRequiredData<T> {
-        const result = {
-            SourceFile: item.SourceFile,
-        } as IExifRequiredData<T>;
-
-        for (const key of fields) {
-            result[key] = Exiftool.validateField(item, key);
-        }
-
-        return result;
-    }
-
-    async getData<T extends TAvailableFields>(fields: T[]): Promise<IExifRequiredData<T>[]> {
-        const data = await this.execJson(fields);
-
-        return data.map((item) => Exiftool.validateData(item, fields));
-    }
-
-    async getFiles() {
-        return await this.getData(['FileName']);
-    }
-
-    static getType(MIMEType: string): 'video' | 'image' {
-        if (MIMEType.includes('image/')) { return 'image'; }
-        if (MIMEType.includes('video/')) { return 'video'; }
-
-        throw new Error(`Wrong mime type ${MIMEType}`);
-    }
-
-    static getGroupId(item: IExifPartialData): string | null {
-        return item.MediaGroupUUID || item.ContentIdentifier || null;
-    }
-
-    static async calcFileSize(item: { SourceFile: string }): Promise<number> {
-        const { size } = await fileStat(item.SourceFile);
-
-        return size;
-    }
-
-    static calcImageSize(item: { ImageWidth?: number; ImageHeight?: number }): number {
-        if (!item.ImageWidth || !item.ImageHeight) {
-            throw new Error('Can not calc image size', { cause: item });
-        }
-
-        return item.ImageWidth * item.ImageHeight;
-    }
+export async function exiftool(params: string[]): Promise<string> {
+    return await exec('exiftool', params);
 }

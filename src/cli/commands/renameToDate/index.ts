@@ -1,8 +1,8 @@
 import { Argv } from 'yargs';
-import { ColonDate, TimeZone } from '../../../lib/ColonDate.js';
+import { ColonDate } from '../../../lib/ColonDate.js';
 import { getOriginalSourceFilename } from '../../../utils/filename.js';
 import { rename } from '../../../utils/fs.js';
-import { Database } from '../../../lib/Database.js';
+import { Database } from '../../../lib/Database/index.js';
 
 export const command = 'renameToDate <path>';
 export const description = 'Rename file to calculated date';
@@ -46,12 +46,12 @@ export function createFilename(src: string, date: ColonDate, add = 0): string {
 
 export async function handler(argv: RenameToDateArguments): Promise<void> {
     const ROOT = argv.path;
-    const database = await Database.init(ROOT, { useCache: false, useThumbnails: false });
-    const data = await database.getItems();
+    const database = await Database.init(ROOT);
+    const data = database.getData();
 
-    for (const item of data) {
-        const src = item.files[0].FileName;
-        const date = item.date;
+    for (const id of Object.keys(data.files)) {
+        const src = data.files[id].filepath;
+        const date = data.exifs[id].timestamp;
 
         if (!date) {
             continue;

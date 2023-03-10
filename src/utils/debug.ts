@@ -1,5 +1,5 @@
 import debug from 'debug';
 
-export const debugUtil = (part: string) => debug(`photo-catalog-prettifier:${part}`);
+export const debugUtil = (part: string) => debug(`pcp:${part}`);
 
 export type { Debugger } from 'debug';

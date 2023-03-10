@@ -2,36 +2,39 @@ import { debugUtil } from '../utils/debug.js';
 import { readJson, writeJson } from '../utils/fs.js';
 import { resolveByRoot } from '../utils/path.js';
 
-const debug = debugUtil('databaseCache');
+const debug = debugUtil('cache');
 
 export class Cache<T> {
-    private cache: T | null = null;
-    private cacheName: string;
+    private data: T | null = null;
+    private readonly name: string;
+    private readonly path: string;
 
     constructor(filename: string) {
-        debug('init cache "%s"', filename);
-        this.cacheName = resolveByRoot('database', filename.replace(/\./g, '_'));
+        debug('init', filename);
+        this.name = filename.replace(/[\s\.]/g, '_');
+        this.path = resolveByRoot('database', this.name);
     }
 
     public async get(): Promise<T | null> {
-        debug('get cache');
-        if (this.cache !== null) {
-            return this.cache;
+        if (this.data !== null) {
+            debug('get from memory');
+            return this.data;
         }
 
         try {
-            this.cache = await readJson<T>(this.cacheName);
+            debug('get from file');
+            this.data = await readJson<T>(this.name);
 
-            return this.cache;
+            return this.data;
         } catch (e) {
             return null;
         }
     }
 
     public async set(data: T) {
-        debug('set cache %s', typeof data);
-        this.cache = data;
+        debug('set', typeof data);
+        this.data = data;
 
-        await writeJson(this.cacheName, data);
+        await writeJson(this.name, data);
     }
 }

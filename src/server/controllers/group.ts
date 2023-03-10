@@ -1,18 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'node:fs';
 import { joinPath, resolveByRoot } from '../../utils/path.js';
-import { Database } from '../../lib/Database.js';
+import { Database } from '../../lib/Database/index.js';
 import { getTemplate } from '../../utils/template.js';
 
 export function groupController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
+    const data = database.getData();
 
-    Promise.all([
-        database.getItems(),
-        getTemplate('group'),
-    ])
-        .then(([items, template]) => {
-            res.send(template({ items }));
+    getTemplate('group')
+        .then(template => {
+            res.send(template({
+                data,
+            }));
         })
         .catch((err) => next(err));
 }
@@ -25,12 +25,12 @@ export function groupOperationController(req: Request, res: Response, next: Next
     if (operation === 'delete') {
         for (const file of files) {
             fs.renameSync(
-                joinPath(file.SourceFile),
-                resolveByRoot('database/trash', file.FileName),
+                joinPath(file.filepath),
+                resolveByRoot('database/trash', file.filename),
             );
-            console.log(`- remove ${file.SourceFile}`);
+            console.log(`- remove ${file.filepath}`);
         }
-        Database.init(database.path, { useCache: false, useThumbnails: true })
+        Database.init(database.path)
             .then(newDatabase => {
                 req.app.set('database', newDatabase);
                 res.redirect('/groups');

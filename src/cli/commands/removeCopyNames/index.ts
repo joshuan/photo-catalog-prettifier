@@ -1,5 +1,5 @@
 import { Argv } from 'yargs';
-import { Exiftool } from '../../../lib/Exiftool.js';
+import { buildFiles } from '../../../lib/Database/tables/file.js';
 import { readDir, rename } from '../../../utils/fs.js';
 import { getBasename, getExt } from '../../../utils/path.js';
 
@@ -30,11 +30,6 @@ interface IPartData {
     FileName: string;
 }
 
-function getData(path: string): Promise<IPartData[]> {
-    const tool = new Exiftool(path);
-    return tool.getFiles();
-}
-
 const SUFFIX_RE = /\(\d+\)$/;
 
 function isHasSuffix(filename: string): boolean {
@@ -53,18 +48,18 @@ function trimSuffix(filename: string): string {
 
 export async function handler(argv: IRemoveCopyNamesArguments) {
     const ROOT = argv.path;
-    const allFiles = await readDir(ROOT);
-    const filesWithSuffix = allFiles.filter(isHasSuffix);
+    const list = await buildFiles(ROOT);
+    const filesWithSuffix = Object.keys(list).filter(isHasSuffix);
 
-    for (const file of filesWithSuffix) {
-        const dest = trimSuffix(file);
+    for (const filename of filesWithSuffix) {
+        const dest = trimSuffix(filename);
 
-        console.log(`- ${file} -> ${dest}`);
-        if (allFiles.includes(dest)) {
+        console.log(`- ${filename} -> ${dest}`);
+        if (list[dest]) {
             console.log(`  ⚠️ file "${dest}" already exists, he was not renamed.`);
         } else {
             if (!argv.dryRun) {
-                await rename(ROOT, file, dest);
+                await rename(ROOT, filename, dest);
             }
         }
     }

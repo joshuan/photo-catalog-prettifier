@@ -4,13 +4,17 @@ import { debugUtil } from './debug.js';
 
 const debug = debugUtil('fs');
 
-export async function readDir(dirpath: string): Promise<string[]> {
-    debug('readDir start', dirpath);
+export function readDir(dirpath: string): string[] {
+    return fs.readdirSync(dirpath);
+}
+
+export function mkdir(dirpath: string): Promise<void> {
     return new Promise((resolve, reject) => {
-        fs.readdir(dirpath, function(err, files) {
-            debug('readDir finish', files.length);
-            err ? reject(err) : resolve(files);
-        });
+        return fs.mkdir(
+            dirpath,
+            { recursive: true },
+            err => err ? reject(err) : resolve(),
+        );
     });
 }
 
@@ -29,20 +33,11 @@ export async function isFileExist(filepath?: string): Promise<boolean> {
 }
 
 export async function fileStat(filepath: string): Promise<fs.Stats> {
-    debug('fileStat start', filepath);
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) =>
         fs.stat(
             filepath,
-            (err, stats) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    debug('fileStat ready', filepath);
-                    resolve(stats);
-                }
-            },
-        );
-    });
+            (err, stats) => err ? reject(err) : resolve(stats)),
+    );
 }
 
 export async function validatePath(filepath?: string): Promise<{ path: string; type: 'file' | 'directory' }> {

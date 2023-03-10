@@ -1,3 +1,8 @@
+export interface IGps {
+    lat: string;
+    lon: string;
+}
+
 const GPS_RE = /^(\d+)\sdeg\s(\d+)\'\s([\d\.]+)\"\s(\w+)$/;
 
 // "25 deg 19' 47.38\" N"
@@ -16,11 +21,11 @@ function parseGeoPoint(gps: string): string {
     return ((degrees + minutes/60 + seconds/3600) * (isPositive ? 1 : -1)).toFixed(6);
 }
 
-export function buildGps(item: { GPSLatitude?: string; GPSLongitude?: string; }) {
-    if (item.GPSLatitude && item.GPSLongitude) {
+export function buildGps(exif: { GPSLatitude?: string; GPSLongitude?: string; }): IGps | undefined {
+    if (exif.GPSLatitude && exif.GPSLongitude) {
         return {
-            lat: parseGeoPoint(item.GPSLatitude),
-            lon: parseGeoPoint(item.GPSLongitude),
+            lat: parseGeoPoint(exif.GPSLatitude),
+            lon: parseGeoPoint(exif.GPSLongitude),
         };
     }
 

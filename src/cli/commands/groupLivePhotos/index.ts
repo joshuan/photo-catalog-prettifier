@@ -1,7 +1,7 @@
 import { Argv } from 'yargs';
 import { rename } from '../../../utils/fs.js';
 import { getBasename, getExt } from '../../../utils/path.js';
-import { Database } from '../../../lib/Database.js';
+import { Database } from '../../../lib/Database/index.js';
 
 export const command = 'groupLivePhotos <path>';
 export const description = 'Group live photos and videos by as name';
@@ -41,30 +41,19 @@ function calcRename(imageFilename: string, videoFilename: string, suffix: string
 // Группируем live photos из 2 файлов, по общему MediaGroupUUID - они должны иметь одинаковое имя.
 export async function handler(argv: IGroupLivePhotosArguments) {
     const ROOT = argv.path;
-    const database = await Database.init(ROOT, { useCache: false, useThumbnails: false });
-    const items = await database.getItems();
+    const database = await Database.init(ROOT);
+    const data = database.getData();
 
-    for (const item of items) {
-        if (item.files.length !== 2) {
+    for (const item of data.items) {
+        if (!item.live) {
             continue;
         }
 
-        let image = null;
-        let video = null;
+        let image = data.files[item.live.image];
+        let video = data.files[item.live.video];
 
-        if (item.files[0].type === 'image' && item.files[1].type === 'video') {
-            image = item.files[0];
-            video = item.files[1];
-        } else if (item.files[0].type === 'video' && item.files[1].type === 'image') {
-            image = item.files[1];
-            video = item.files[0];
-        } else {
-            console.error(item);
-            throw new Error('Broken pair', { cause: item });
-        }
-
-        const src = video.FileName;
-        const dest = calcRename(image.FileName, video.FileName, argv.suffix);
+        const src = video.filename;
+        const dest = calcRename(image.filename, video.filename, argv.suffix);
 
         if (src !== dest) {
             console.log('-', src, '->', dest);

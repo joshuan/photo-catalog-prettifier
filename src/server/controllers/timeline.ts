@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { Database } from '../../lib/Database.js';
+import { Database } from '../../lib/Database/index.js';
+import { TCatalogItem } from '../../lib/Database/tables/item.js';
 import { getTemplate } from '../../utils/template.js';
+import { buildFilterItemsByQuery } from '../utils/filter.js';
 
 function roundFloorTime(time: number) {
     const date = new Date(time * 1000);
@@ -21,12 +23,12 @@ function roundCeilTime(time: number) {
     return date.getTime();
 }
 
-function calcMaxTime(list: { date: number; }[]): number {
-    return roundCeilTime(list.filter(item => item.date < 1559340000).reduce((acc, item) => item.date > acc ? item.date : acc, 0));
+function calcMaxTime(list: { timestamp: number; }[]): number {
+    return roundCeilTime(list.filter(item => item.timestamp < 1559340000).reduce((acc, item) => item.timestamp > acc ? item.timestamp : acc, 0));
 }
 
-function calcMinTime(list: { date: number; }[]): number {
-    return roundFloorTime(list.reduce((acc, item) => item.date < acc ? item.date : acc, Date.now()));
+function calcMinTime(list: { timestamp: number; }[]): number {
+    return roundFloorTime(list.reduce((acc, item) => item.timestamp < acc ? item.timestamp : acc, Date.now()));
 }
 
 function filterItemsByQuery(query: Request['query']) {
@@ -43,20 +45,22 @@ function filterItemsByQuery(query: Request['query']) {
     }
 }
 
+function filterItems(items: TCatalogItem[]): (TCatalogItem & { timestamp: number })[] {
+    return items
+        .filter(item => Boolean(item.timestamp)) as (TCatalogItem & { timestamp: number })[];
+}
+
 export function timelineController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
+    const data = database.getData();
+    const items = filterItems(database.getItems(buildFilterItemsByQuery(req.query)));
 
-    Promise.all([
-        database.getItems()
-            .then(filterItemsByQuery(req.query)),
-        getTemplate('timeline'),
-    ])
-        .then(([list, template]) => {
-            const items = list.filter(item => Boolean(item.date)) as { date: number; }[];
+    getTemplate('timeline')
+        .then(template => {
             const maxTime = calcMaxTime(items);
             const minTime = calcMinTime(items);
 
-            res.send(template({ items, minTime, maxTime }));
+            res.send(template({ items, minTime, maxTime, data }));
         })
         .catch((err) => next(err));
 }
