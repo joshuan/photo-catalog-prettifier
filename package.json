@@ -13,6 +13,7 @@
     "cli": "env $(cat .env | xargs) ts-node --esm src/cli/index.ts",
     "buildData": "npm run cli buildData",
     "server": "env $(cat .env | xargs) ts-node --esm src/server/index.ts",
+    "server:dev": "nodemon --watch \"src/**\" --ext \"ts\" --ignore \"src/**/*.test.ts\" --exec \"npm run server\"",
     "clear": "rm -rf data/*"
   },
   "keywords": [],

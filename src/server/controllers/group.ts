@@ -12,16 +12,18 @@ export async function groupController(req: Request, res: Response, next: NextFun
 
     res.send(template({
         ...data,
+        select: Boolean(req.query.select),
     }));
 }
 
 export async function groupOperationController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
     const operation = req.body.operation;
-    const files = ((req.body?.files || []) as string[]).map(file => database.getFile(file));
+    const files = ((req.body?.files || []) as string[]).filter(Boolean).map(file => database.getFile(file));
 
     if (operation === 'delete') {
-        const trashFolder = await getFolder('trash');
+        const trashFolder = await getFolder(`trash/${database.name}`);
+
         for (const file of files) {
             fs.renameSync(
                 joinPath(file.filepath),
@@ -29,15 +31,15 @@ export async function groupOperationController(req: Request, res: Response, next
             );
             console.log(`- remove ${file.filepath}`);
         }
-        Database.init(database.path)
-            .then(newDatabase => {
-                req.app.set('database', newDatabase);
-                res.redirect('/groups');
-            })
-            .catch(err => next(err));
+
+        const newDatabase = await Database.init(database.path, { useFilesCache: false, useItemsCache: false });
+
+        req.app.set('database', newDatabase);
+
+        res.redirect('/groups');
     } else if (operation === 'ungroup') {
-        next(new Error('TODO: Ungrouped!'));
+        throw new Error('TODO: Ungrouped!');
     } else {
-        next(new Error('Broken operation!'));
+        throw new Error('Broken operation!');
     }
 }

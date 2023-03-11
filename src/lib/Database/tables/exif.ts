@@ -43,8 +43,14 @@ function buildGroupId(exif: { MediaGroupUUID?: string; ContentIdentifier?: strin
 
 const cache = new Cache<IMediaExifList>('exif');
 
-export async function buildExif(name: string, path: string): Promise<IMediaExifList> {
-    if (await cache.has(name)) {
+interface IMediaExifOptions {
+    useCache?: boolean;
+}
+
+export async function buildExif(name: string, path: string, options: IMediaExifOptions = {}): Promise<IMediaExifList> {
+    const { useCache = true } = options;
+
+    if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
 

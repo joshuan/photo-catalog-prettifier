@@ -27,8 +27,14 @@ function buildPreviewFilename(originalFilename: string): string {
 
 const cache = new Cache<IMediaFilesList>('files');
 
-export async function buildFiles(name: string, path: string): Promise<IMediaFilesList> {
-    if (await cache.has(name)) {
+interface IMediaFilesOptions {
+    useCache?: boolean;
+}
+
+export async function buildFiles(name: string, path: string, options: IMediaFilesOptions = {}): Promise<IMediaFilesList> {
+    const { useCache = true } = options;
+
+    if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
 

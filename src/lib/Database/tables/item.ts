@@ -91,6 +91,10 @@ function selectLive<E extends IMediaItemsExif>(files: { file: { filename: string
 
 const cache = new Cache<TCatalogItem[]>('items');
 
+interface IMediaItemsOptions {
+    useCache?: boolean;
+}
+
 export async function buildItems<
     F extends IMediaItemsFile,
     E extends IMediaItemsExif,
@@ -102,10 +106,13 @@ export async function buildItems<
         files: Record<string, F>,
         exifs: Record<string, E>,
         previews: Record<string, T>,
-        hash: Record<string, H>,
-    }
+        hash: { data: Record<string, H> },
+    },
+    options: IMediaItemsOptions = {},
 ): Promise<TCatalogItem[]> {
-    if (await cache.has(name)) {
+    const { useCache = true } = options;
+
+    if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
 
@@ -113,7 +120,7 @@ export async function buildItems<
         file,
         exif: exifs[file.filename],
         preview: previews[file.filename],
-        hash: hash[file.filename],
+        hash: hash.data[file.filename],
     }));
     const groups = groupFiles(list);
 

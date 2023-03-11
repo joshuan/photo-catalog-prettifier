@@ -35,10 +35,16 @@
             height: 100px;
         }
         .winner.image {
-            background: lightgreen;
+            background: #b8eeb8;
         }
         .winner.video {
             background: lightgoldenrodyellow;
+        }
+        .video-icon {
+            font-size: 2em;
+            position: absolute;
+            right: 0.3em;
+            bottom: 0.1em;
         }
         label {
             display: block;
@@ -50,15 +56,15 @@
         }
         input {
             position: absolute;
-            top: 0.5em;
-            right: 0.5em;
+            top: 0.3em;
+            right: 0.3em;
         }
         input:checked + label {
             background: lightcoral;
             opacity: 0.2;
         }
         .meta {
-            margin: 0.4em;
+            margin: 0.2em;
             padding: 0 1.7em 0 0.3em;
             font-size: 0.8em;
             position: absolute;
@@ -95,6 +101,12 @@
     return true;
 } %>
 
+<% function isWin(item, file, { _raw, ...exif }) {
+    return item.type === 'video' ?
+        (file.filename === item.files[0]) :
+        (item.live ? item.live[exif.type] === file.filename : (file.filename === item.files[0])) ;
+} %>
+
 <form action="/groups" method="post">
 <% for (const itemIndex in items) { %>
     <% const item = items[itemIndex] %>
@@ -110,16 +122,24 @@
             <% const file = files[fileId]; %>
             <% const exif = exifs[fileId]; %>
             <% const preview = previews[fileId]; %>
-            <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>" title="<%= file.filename %>">
+            <% const win = isWin(item, file, exif); %>
+            <td class="<%= win ? 'winner' : '' %> <%= exif.type %>" title="<%= file.filename %>">
+                <%- exif.type === 'video' ? '<span class="video-icon">🎬</span>' : '' %>
                 <p class="<%= exif.timestamp !== item.timestamp ? 'wrong' : '' %>">
                     Date: <%= exif.timestamp ? printDate(new Date(exif.timestamp * 1000)) : '' %>
                 </p>
                 <p><%= exif._raw.ImageSize %> | <%= exif._raw.FileSize %> | <%= exif._raw.Duration %></p>
                 <p><% if (exif.gps) { %>GPS: <%= exif.gps.lat %>, <%= exif.gps.lon %><% } %></p>
-                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.filename %></b></p>
+                <p><b><%= file.filename %></b></p>
                 <img src="<%= preview.url %>" />
                 <div class="meta"><%= exif.compressor %></div>
-                <input type="checkbox" name="files[]" value="<%= file.FileName %>" id="<%= fileId %>"/>
+                <input
+                    type="checkbox"
+                    name="files[]"
+                    value="<%= file.filename %>"
+                    id="<%= fileId %>"
+                    <%= (select && !win) ? ' checked' : '' %>
+                />
                 <label for="<%= fileId %>" />
             </td>
         <% } %>
@@ -132,7 +152,7 @@
             <option value="delete">Delete</option>
         </select>
     </p>
-    <p><button type="submit">Delete!</button></p>
+    <p><button type="submit">Submit</button></p>
 </form>
 </body>
 </html>

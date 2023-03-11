@@ -11,14 +11,26 @@ interface CompareItem {
     examplePath: string;
 }
 
-async function compareFiles(first: CompareItem, second: CompareItem): Promise<{ files: [string, string]; compare: number; }> {
+interface CompareResult {
+    files: [string, string];
+    compare: number;
+}
+
+const EXAMPLE_SIZE = 100; // Размер картинки - 100x100, 10000 пикселей
+const EXAMPLE_DIFF = 50;  // Кол-во пикселей, которые могут расходиться из исходных 10000 (0.5%)
+const EXAMPLE_FUZZ = 10;  //
+
+async function compareFiles(first: CompareItem, second: CompareItem): Promise<CompareResult> {
     return {
         files: [ first.filename, second.filename ],
-        compare: await compare([first.examplePath, second.examplePath]),
+        compare: await compare([first.examplePath, second.examplePath], { fuzz: EXAMPLE_FUZZ }),
     };
 }
 
-export type IMediaHashList = Record<string, string>;
+export interface IMediaHashList {
+    data: Record<string, string>;
+    compare: CompareResult[];
+}
 
 interface IMediaHashFile {
     filepath: string;
@@ -40,6 +52,10 @@ function buildExampleFilename(originalFilename: string): string {
 
 const cache = new Cache<IMediaHashList>('hash');
 
+interface IMediaHashOptions {
+    useCache?: boolean;
+}
+
 export async function buildHash<
     F extends IMediaHashFile,
     E extends IMediaHashExif,
@@ -48,9 +64,12 @@ export async function buildHash<
     { files, exifs }: {
         files: Record<string, F>,
         exifs: Record<string, E>,
-    }
+    },
+    options: IMediaHashOptions = {},
 ): Promise<IMediaHashList> {
-    if (await cache.has(name)) {
+    const { useCache = true } = options;
+
+    if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
 
@@ -73,7 +92,7 @@ export async function buildHash<
             dest,
         }, {
             overwrite: true,
-            size: 160,
+            size: EXAMPLE_SIZE,
             ratio: false,
             originalSize: exif.imageSize,
             gray: true,
@@ -95,19 +114,22 @@ export async function buildHash<
 
     const pairs = await pLimit(pairFiles.map(([first, second]) => (() => compareFiles(first, second))));
 
-    const result: IMediaHashList = {};
+    const result: IMediaHashList = {
+        data: {},
+        compare: pairs,
+    };
 
     for (const { files, compare } of pairs) {
         const first = files[0];
         const second = files[1];
 
-        if (compare === 0) {
-            if (typeof result[first] === 'undefined') {
+        if (compare < EXAMPLE_DIFF) {
+            if (typeof result.data[first] === 'undefined') {
                 const newUuid = uuid();
-                result[first] = newUuid;
-                result[second] = newUuid;
+                result.data[first] = newUuid;
+                result.data[second] = newUuid;
             } else {
-                result[second] = result[first];
+                result.data[second] = result.data[first];
             }
         }
     }

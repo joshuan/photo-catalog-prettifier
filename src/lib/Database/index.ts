@@ -13,24 +13,41 @@ interface TData {
     items: TCatalogItem[];
 }
 
-export class Database {
-    static async init(path: string): Promise<Database> {
-        const name = getBasename(path);
-        const [files, exifs] = await Promise.all([buildFiles(name, path), buildExif(name, path)]);
-        const [previews, hash] = await Promise.all([buildPreviews(name, { files, exifs }), buildHash(name, { files, exifs })]);
-        const items = await buildItems(name, { files, exifs, previews, hash });
+interface IDatabaseInitOptions {
+    useFilesCache?: boolean;
+    useExifCache?: boolean;
+    usePreviewsCache?: boolean;
+    useHashCache?: boolean;
+    useItemsCache?: boolean;
+}
 
-        return new Database(path, { files, exifs, previews, hash, items });
+export class Database {
+    static async init(path: string, options: IDatabaseInitOptions = {}): Promise<Database> {
+        const { useFilesCache = true, useExifCache = true, usePreviewsCache = true, useHashCache = true, useItemsCache = true } = options;
+
+        const name = getBasename(path);
+        const [files, exifs] = await Promise.all([
+            buildFiles(name, path, { useCache: useFilesCache }),
+            buildExif(name, path, { useCache: useExifCache }),
+        ]);
+        const [previews, hash] = await Promise.all([
+            buildPreviews(name, { files, exifs }, { useCache: usePreviewsCache }),
+            buildHash(name, { files, exifs }, { useCache: useHashCache }),
+        ]);
+        const items = await buildItems(name, { files, exifs, previews, hash }, { useCache: useItemsCache });
+
+        return new Database(name, path, { files, exifs, previews, hash, items });
     }
 
     constructor(
+        public readonly name: string,
         public readonly path: string,
         public data: TData,
     ) {}
 
     public getFile(key: string) {
         if (!this.data.files[key]) {
-            throw new Error('Unknown item', { cause: key });
+            throw new Error(`Unknown item ${key}`, { cause: key });
         }
 
         return this.data.files[key];

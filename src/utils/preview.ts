@@ -27,9 +27,15 @@ export async function buildPreview(item: IPreview, options: IPreviewOptions = {}
     switch (type) {
         case 'image':
             const options = [
-                '-thumbnail', ratio ? `${size}x${size}` : `${size}x${size}`,
                 '-quality', '70',
             ];
+
+            if (!ratio) {
+                options.push('-gravity', 'center');
+                options.push('-crop', '1:1');
+            }
+
+            options.push('-thumbnail', `${size}x${size}`);
 
             if (gray) {
                 options.push('-colorspace', 'Gray');

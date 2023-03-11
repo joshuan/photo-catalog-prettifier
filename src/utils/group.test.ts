@@ -4,13 +4,13 @@ import { groupFiles, IGroupFile } from './group.js';
 describe.only('groupFiles', () => {
     test('1', () => {
         const source: IGroupFile[] = [
-            { file: { originalName: '1' }, exif: { groupId: '1' }, hash: undefined },
-            { file: { originalName: '2' }, exif: { groupId: '1' }, hash: undefined },
+            { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+            { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g1' }, hash: undefined },
         ];
         const expected = {
-            '1': [
-                { FileName: '1', groupId: '1', hash: expect.any(String), fileIndex: '1' },
-                { FileName: '2', groupId: '1', hash: expect.any(String), fileIndex: '2' },
+            'f1': [
+                { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+                { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g1' }, hash: undefined },
             ],
         };
         expect(groupFiles(source)).toEqual(expected);
@@ -18,15 +18,15 @@ describe.only('groupFiles', () => {
 
     test('2', () => {
         const source: IGroupFile[] = [
-            { file: { originalName: '1' }, exif: { groupId: '1' }, hash: undefined },
-            { file: { originalName: '2' }, exif: { groupId: '2' }, hash: undefined },
+            { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+            { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g2' }, hash: undefined },
         ];
         const expected = {
-            '1': [
-                { FileName: '1', groupId: '1', hash: expect.any(String), fileIndex: '1' },
+            'f1': [
+                { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
             ],
-            '2': [
-                { FileName: '2', groupId: '2', hash: expect.any(String), fileIndex: '2' },
+            'f2': [
+                { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g2' }, hash: undefined },
             ],
         };
         expect(groupFiles(source)).toEqual(expected);
@@ -34,17 +34,17 @@ describe.only('groupFiles', () => {
 
     test('3', () => {
         const source: IGroupFile[] = [
-            { file: { originalName: '1' }, exif: { groupId: '1' }, hash: undefined },
-            { file: { originalName: '2' }, exif: { groupId: '2' }, hash: undefined },
-            { file: { originalName: '3' }, exif: { groupId: '1' }, hash: 'hash-1' },
+            { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+            { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g2' }, hash: undefined },
+            { file: { filename: 'f3', originalName: 'fo3' }, exif: { groupId: 'g1' }, hash: 'hash-1' },
         ];
         const expected = {
-            '1': [
-                { FileName: '1', groupId: '1', hash: expect.any(String), fileIndex: '1' },
-                { FileName: '3', groupId: '1', hash: 'hash-1', fileIndex: '3' },
+            'f1': [
+                { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+                { file: { filename: 'f3', originalName: 'fo3' }, exif: { groupId: 'g1' }, hash: 'hash-1' },
             ],
-            '2': [
-                { FileName: '2', groupId: '2', hash: expect.any(String), fileIndex: '2' },
+            'f2': [
+                { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g2' }, hash: undefined },
             ],
         };
         expect(groupFiles(source)).toEqual(expected);
@@ -52,9 +52,9 @@ describe.only('groupFiles', () => {
 
     test('4', () => {
         const source: IGroupFile[] = [
-            { file: { originalName: '1' }, exif: { groupId: '1' }, hash: undefined },
-            { file: { originalName: '2' }, exif: { groupId: 'uuid2' }, hash: undefined },
-            { file: { originalName: '3' }, exif: { groupId: 'uuid3' }, hash: undefined },
+            { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+            { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g2' }, hash: undefined },
+            { file: { filename: 'f3', originalName: 'fo3' }, exif: { groupId: 'g3' }, hash: undefined },
         ];
 
         expect(Object.keys(groupFiles(source)).length).toEqual(3);
@@ -62,15 +62,29 @@ describe.only('groupFiles', () => {
 
     test('5', () => {
         const source: IGroupFile[] = [
-            { file: { originalName: '1' }, exif: { groupId: '1' }, hash: undefined },
-            { file: { originalName: '2' }, exif: { groupId: '2' }, hash: 'hash-1' },
-            { file: { originalName: '3' }, exif: { groupId: '1' }, hash: 'hash-1' },
+            { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+            { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g2' }, hash: 'hash-1' },
+            { file: { filename: 'f3', originalName: 'fo3' }, exif: { groupId: 'g1' }, hash: 'hash-1' },
         ];
         const expected = {
-            '2': [
-                { FileName: '2', groupId: '2', hash: 'hash-1', fileIndex: '2' },
-                { FileName: '1', groupId: '1', hash: expect.any(String), fileIndex: '1' },
-                { FileName: '3', groupId: '1', hash: 'hash-1', fileIndex: '3' },
+            'f1': [
+                { file: { filename: 'f1', originalName: 'fo1' }, exif: { groupId: 'g1' }, hash: undefined },
+                { file: { filename: 'f2', originalName: 'fo2' }, exif: { groupId: 'g2' }, hash: 'hash-1' },
+                { file: { filename: 'f3', originalName: 'fo3' }, exif: { groupId: 'g1' }, hash: 'hash-1' },
+            ]
+        };
+        expect(groupFiles(source)).toEqual(expected);
+    });
+
+    test('6', () => {
+        const source: IGroupFile[] = [
+            { file: { filename: 'IMG_3053 (live).mp4', originalName: 'IMG_3053 (live).mp4' }, exif: { groupId: 'guid1' }, hash: undefined },
+            { file: { filename: 'IMG_3053.heic', originalName: 'IMG_3053.heic' }, exif: { groupId: 'guid2' }, hash: undefined },
+        ];
+        const expected = {
+            'IMG_3053 (live).mp4': [
+                { file: { filename: 'IMG_3053 (live).mp4', originalName: 'IMG_3053 (live).mp4' }, exif: { groupId: 'guid1' }, hash: undefined },
+                { file: { filename: 'IMG_3053.heic', originalName: 'IMG_3053.heic' }, exif: { groupId: 'guid2' }, hash: undefined },
             ],
         };
         expect(groupFiles(source)).toEqual(expected);

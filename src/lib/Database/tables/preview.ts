@@ -24,6 +24,10 @@ interface IMediaThumbnailsExif {
 
 const cache = new Cache<IMediaPreviewsList>('previews');
 
+interface IMediaPreviewsOptions {
+    useCache?: boolean;
+}
+
 export async function buildPreviews<
     F extends IMediaThumbnailsFile,
     E extends IMediaThumbnailsExif,
@@ -33,8 +37,11 @@ export async function buildPreviews<
         files: Record<string, F>,
         exifs: Record<string, E>,
     },
+    options: IMediaPreviewsOptions = {},
 ): Promise<IMediaPreviewsList> {
-    if (await cache.has(name)) {
+    const { useCache = true } = options;
+
+    if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
 
