@@ -2,6 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { buildDate } from '../../../utils/exifdate/index.js';
 import { exiftoolGetter, IExifPartialData } from '../../../utils/exiftool.js';
 import { buildGps, IGps } from '../../../utils/gps.js';
+import { Cache } from '../../Cache.js';
 
 export type IMediaExifItem = {
     _raw: IExifPartialData,
@@ -24,9 +25,13 @@ function buildType(MIMEType: string): 'video' | 'image' {
     throw new Error(`Wrong mime type ${MIMEType}`);
 }
 
-function buildImageSize(exif: { ImageWidth?: number; ImageHeight?: number }): [number, number] {
+function buildImageSize(exif: { Rotation?: number; ImageWidth?: number; ImageHeight?: number }): [number, number] {
     if (!exif.ImageWidth || !exif.ImageHeight) {
         throw new Error('ImageWidth and ImageHeight is required for get picture size', { cause: exif });
+    }
+
+    if (exif.Rotation && (exif.Rotation === 90 || exif.Rotation === 270)) {
+        return [exif.ImageHeight, exif.ImageWidth];
     }
 
     return [exif.ImageWidth, exif.ImageHeight];
@@ -36,10 +41,16 @@ function buildGroupId(exif: { MediaGroupUUID?: string; ContentIdentifier?: strin
     return exif.MediaGroupUUID || exif.ContentIdentifier || uuid();
 }
 
-export async function buildExif(path: string): Promise<IMediaExifList> {
+const cache = new Cache<IMediaExifList>('exif');
+
+export async function buildExif(name: string, path: string): Promise<IMediaExifList> {
+    if (await cache.has(name)) {
+        return await cache.get(name);
+    }
+
     const data = await exiftoolGetter(path);
 
-    return data.reduce((acc, exif) => {
+    const result = data.reduce((acc, exif) => {
         const size = buildImageSize(exif);
 
         if (!exif.MIMEType) {
@@ -60,4 +71,8 @@ export async function buildExif(path: string): Promise<IMediaExifList> {
 
         return acc;
     }, {} as IMediaExifList);
+
+    await cache.set(name, result);
+
+    return result;
 }

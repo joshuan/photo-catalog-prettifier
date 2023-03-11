@@ -13,7 +13,7 @@
     "cli": "env $(cat .env | xargs) ts-node --esm src/cli/index.ts",
     "buildData": "npm run cli buildData",
     "server": "env $(cat .env | xargs) ts-node --esm src/server/index.ts",
-    "clear": "rm -rf database/*"
+    "clear": "rm -rf data/*"
   },
   "keywords": [],
   "author": "Joshuan <joshuan.chel@gmail.com>",

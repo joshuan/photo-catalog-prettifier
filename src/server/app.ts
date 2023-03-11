@@ -13,7 +13,7 @@ export const buildApp = async function buildApp(path: string) {
     const app = express();
 
     app.use(loggerMiddleware);
-    app.use(bodyParser.urlencoded());
+    app.use(bodyParser.urlencoded({ extended: true }));
 
     app.get('/', asyncController(mainController));
     app.get('/groups', asyncController(groupController));
@@ -23,7 +23,7 @@ export const buildApp = async function buildApp(path: string) {
     app.get('/gallery/:id', asyncController(galleryItemController));
     app.get('/geo', asyncController(geoController));
 
-    app.use('/previews', express.static(resolveByRoot('database/previews')));
+    app.use('/previews', express.static(resolveByRoot('data/previews')));
     app.use('/original', express.static(path));
 
     return app;

@@ -1,9 +1,10 @@
 import { v4 as uuid } from 'uuid';
 import { compare } from '../../../utils/compare.js';
-import { getFolder } from '../../../utils/folder.js';
+import { getFolder } from '../../../utils/data.js';
 import { getBasename, getExt, joinPath } from '../../../utils/path.js';
 import { pLimit } from '../../../utils/pLimit.js';
 import { buildPreview } from '../../../utils/preview.js';
+import { Cache } from '../../Cache.js';
 
 interface CompareItem {
     filename: string;
@@ -27,6 +28,7 @@ interface IMediaHashFile {
 
 interface IMediaHashExif {
     type: 'image' | 'video';
+    imageSize: [number, number];
 }
 
 function buildExampleFilename(originalFilename: string): string {
@@ -36,15 +38,24 @@ function buildExampleFilename(originalFilename: string): string {
     return basename + originalExt.replace(/\./g, '_') + '_example.png';
 }
 
+const cache = new Cache<IMediaHashList>('hash');
+
 export async function buildHash<
     F extends IMediaHashFile,
     E extends IMediaHashExif,
 >(
-    files: Record<string, F>,
-    exifs: Record<string, E>,
+    name: string,
+    { files, exifs }: {
+        files: Record<string, F>,
+        exifs: Record<string, E>,
+    }
 ): Promise<IMediaHashList> {
+    if (await cache.has(name)) {
+        return await cache.get(name);
+    }
+
     const compareJobs = [];
-    const folder = await getFolder('examples');
+    const folder = await getFolder(`examples/${name}`);
 
     for (const file of Object.values(files)) {
         const exif = exifs[file.filename];
@@ -62,6 +73,10 @@ export async function buildHash<
             dest,
         }, {
             overwrite: true,
+            size: 160,
+            ratio: false,
+            originalSize: exif.imageSize,
+            gray: true,
         }).then(() => ({
             filename: file.filename,
             exampleFilename,
@@ -80,22 +95,24 @@ export async function buildHash<
 
     const pairs = await pLimit(pairFiles.map(([first, second]) => (() => compareFiles(first, second))));
 
-    const database: IMediaHashList = {};
+    const result: IMediaHashList = {};
 
     for (const { files, compare } of pairs) {
         const first = files[0];
         const second = files[1];
 
         if (compare === 0) {
-            if (typeof database[first] === 'undefined') {
+            if (typeof result[first] === 'undefined') {
                 const newUuid = uuid();
-                database[first] = newUuid;
-                database[second] = newUuid;
+                result[first] = newUuid;
+                result[second] = newUuid;
             } else {
-                database[second] = database[first];
+                result[second] = result[first];
             }
         }
     }
 
-    return database;
+    await cache.set(name, result);
+
+    return result;
 }

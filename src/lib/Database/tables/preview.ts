@@ -1,7 +1,8 @@
-import { getFolder } from '../../../utils/folder.js';
-import { joinPath, resolveByRoot } from '../../../utils/path.js';
+import { getFolder } from '../../../utils/data.js';
+import { joinPath } from '../../../utils/path.js';
 import { buildPreview } from '../../../utils/preview.js';
 import { pLimit } from '../../../utils/pLimit.js';
+import { Cache } from '../../Cache.js';
 
 export type IMediaPreviewsItem = {
     url: string;
@@ -21,14 +22,23 @@ interface IMediaThumbnailsExif {
     type: 'image' | 'video';
 }
 
+const cache = new Cache<IMediaPreviewsList>('previews');
+
 export async function buildPreviews<
     F extends IMediaThumbnailsFile,
     E extends IMediaThumbnailsExif,
 >(
-    files: Record<string, F>,
-    exifs: Record<string, E>,
+    name: string,
+    { files, exifs }: {
+        files: Record<string, F>,
+        exifs: Record<string, E>,
+    },
 ): Promise<IMediaPreviewsList> {
-    const folder = await getFolder('previews');
+    if (await cache.has(name)) {
+        return await cache.get(name);
+    }
+
+    const folder = await getFolder(`previews/${name}`);
     const previewsJob = [];
 
     for (const file of Object.values(files)) {
@@ -49,13 +59,13 @@ export async function buildPreviews<
         }).then(() => ({
             filename: file.filename,
             previewPath: dest,
-            previewUrl: `/previews/${file.previewFilename}`,
+            previewUrl: `/previews/${name}/${file.previewFilename}`,
         })));
     }
 
     const data = await pLimit(previewsJob);
 
-    return data.reduce((acc, item) => {
+    const result = data.reduce((acc, item) => {
         acc[item.filename] = {
             url: item.previewUrl,
             path: item.previewPath,
@@ -63,4 +73,8 @@ export async function buildPreviews<
 
         return acc;
     }, {} as IMediaPreviewsList);
+
+    await cache.set(name, result);
+
+    return result;
 }

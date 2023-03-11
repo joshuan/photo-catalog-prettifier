@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { IGps } from '../../../utils/gps.js';
 import { groupFiles } from '../../../utils/group.js';
 import { sortImages, sortVideos } from '../../../utils/sort.js';
+import { Cache } from '../../Cache.js';
 
 type TType = 'image' | 'video';
 
@@ -88,26 +89,35 @@ function selectLive<E extends IMediaItemsExif>(files: { file: { filename: string
     return false;
 }
 
+const cache = new Cache<TCatalogItem[]>('items');
+
 export async function buildItems<
     F extends IMediaItemsFile,
     E extends IMediaItemsExif,
     T extends IMediaItemsPreview,
     H extends IMediaItemsHash,
 >(
-    files: Record<string, F>,
-    exifs: Record<string, E>,
-    previews: Record<string, T>,
-    hashs: Record<string, H>,
+    name: string,
+    { files, exifs, previews, hash }: {
+        files: Record<string, F>,
+        exifs: Record<string, E>,
+        previews: Record<string, T>,
+        hash: Record<string, H>,
+    }
 ): Promise<TCatalogItem[]> {
+    if (await cache.has(name)) {
+        return await cache.get(name);
+    }
+
     const list = Object.values(files).map(file => ({
         file,
         exif: exifs[file.filename],
         preview: previews[file.filename],
-        hash: hashs[file.filename],
+        hash: hash[file.filename],
     }));
     const groups = groupFiles(list);
 
-    const data: TCatalogItem[] = [];
+    const result: TCatalogItem[] = [];
 
     for (const groupId in groups) {
         const groupFiles = sortFiles(groups[groupId]);
@@ -116,7 +126,7 @@ export async function buildItems<
             throw new Error('Empty group!');
         }
 
-        data.push({
+        result.push({
             id: groupId,
             timestamp: selectDate(groupFiles),
             gps: selectGps(groupFiles),
@@ -127,7 +137,9 @@ export async function buildItems<
         });
     }
 
-    data.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    result.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
-    return data;
+    await cache.set(name, result);
+
+    return result;
 }

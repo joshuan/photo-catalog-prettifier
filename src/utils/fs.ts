@@ -118,7 +118,7 @@ export async function deleteFile(directory: string, file: string): Promise<void>
 
 export async function writeJson(filepath: string, body: any): Promise<void> {
     debug('writeJson start', filepath);
-    const result = await write(filepath + '.json', JSON.stringify(body, null, 4))
+    const result = await write(filepath, JSON.stringify(body, null, 4))
     debug('writeJson finish');
     return result;
 }
@@ -126,9 +126,19 @@ export async function writeJson(filepath: string, body: any): Promise<void> {
 export async function readJson<T>(filepath: string): Promise<T> {
     debug('readJson start', filepath);
     return new Promise((resolve, reject) => {
-        fs.readFile(filepath + '.json', { encoding: 'utf-8' }, (err, data) => {
+        fs.readFile(filepath, { encoding: 'utf-8' }, (err, data) => {
             debug('readJson finish');
             err ? reject(err) : resolve(JSON.parse(data) as T);
         });
     });
+}
+
+export function rmDir(dirPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        fs.rm(dirPath, { recursive: true, force: true }, (err) => err ? reject(err) : resolve());
+    });
+}
+
+export function rmDirSync(dirPath: string) {
+    return fs.rmSync(dirPath, { recursive: true, force: true });
 }

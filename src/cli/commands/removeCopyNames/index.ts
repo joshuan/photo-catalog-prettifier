@@ -48,7 +48,8 @@ function trimSuffix(filename: string): string {
 
 export async function handler(argv: IRemoveCopyNamesArguments) {
     const ROOT = argv.path;
-    const list = await buildFiles(ROOT);
+    const name = getBasename(ROOT);
+    const list = await buildFiles(name, ROOT);
     const filesWithSuffix = Object.keys(list).filter(isHasSuffix);
 
     for (const filename of filesWithSuffix) {

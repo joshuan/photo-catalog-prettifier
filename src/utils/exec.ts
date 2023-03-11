@@ -24,7 +24,7 @@ export async function exec(util: string, params: string[]) {
         return result.stdout;
     } catch (err) {
         if (isExecaError(err)) {
-            debug('Error code:', err.exitCode);
+            debug('Error code:', err.exitCode, err.stderr);
         } else {
             debug('Error is not an execa error!')
         }

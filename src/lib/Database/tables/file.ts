@@ -2,6 +2,7 @@ import md5File from 'md5-file';
 import { getOriginalSourceFilename } from '../../../utils/filename.js';
 import { fileStat, readDir } from '../../../utils/fs.js';
 import { getBasename, getExt, joinPath, resolvePath } from '../../../utils/path.js';
+import { Cache } from '../../Cache.js';
 
 export type IMediaFilesItem = {
     filepath: string;
@@ -24,7 +25,13 @@ function buildPreviewFilename(originalFilename: string): string {
     return basename + originalExt.replace(/\./g, '_') + '_preview.png';
 }
 
-export async function buildFiles(path: string): Promise<IMediaFilesList> {
+const cache = new Cache<IMediaFilesList>('files');
+
+export async function buildFiles(name: string, path: string): Promise<IMediaFilesList> {
+    if (await cache.has(name)) {
+        return await cache.get(name);
+    }
+
     const root = resolvePath(path);
     const list = await Promise.all(readDir(root)
         .filter(filename => !filename.startsWith('.'))
@@ -35,7 +42,7 @@ export async function buildFiles(path: string): Promise<IMediaFilesList> {
         .filter(({ stats }) => stats.isFile())
         .map(item => md5File(item.filepath).then(md5 => ({ ...item, md5 }))));
 
-    return md5list.reduce((acc, { stats, ...item }) => {
+    const result = md5list.reduce((acc, { stats, ...item }) => {
         const ext = getExt(item.filename);
 
         acc[item.filename] = {
@@ -49,4 +56,8 @@ export async function buildFiles(path: string): Promise<IMediaFilesList> {
         };
         return acc;
     }, {} as IMediaFilesList);
+
+    await cache.set(name, result);
+
+    return result;
 }

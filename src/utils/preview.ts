@@ -10,34 +10,57 @@ interface IPreview {
 
 interface IPreviewOptions {
     overwrite?: boolean;
+    size?: number;
+    ratio?: boolean;
+    originalSize?: [number, number];
+    gray?: boolean;
 }
 
 export async function buildPreview(item: IPreview, options: IPreviewOptions = {}): Promise<void> {
-    const { overwrite = true } = options;
+    const { overwrite = true, ratio = true, size = 160, originalSize, gray = false } = options;
     const { type, src, dest } = item;
 
-    if (overwrite === false && await isFileExist(dest)) {
+    if (!overwrite && await isFileExist(dest)) {
         return;
     }
 
     switch (type) {
         case 'image':
+            const options = [
+                '-thumbnail', ratio ? `${size}x${size}` : `${size}x${size}`,
+                '-quality', '70',
+            ];
+
+            if (gray) {
+                options.push('-colorspace', 'Gray');
+            }
+
             await convert([
                 src,
-                '-thumbnail', `160x160`,
-                '-quality', '70',
+                ...options,
                 dest,
             ]);
 
             return;
         case 'video':
+            const filters: string[] = [];
+
+            if (ratio) {
+                filters.push(`scale=${size}:-1`);
+            } else {
+                filters.push((originalSize && originalSize[0] < originalSize[1]) ? 'crop=in_w:in_w' : 'crop=in_h:in_h');
+                filters.push(`scale=${size}:${size}`);
+            }
+
+            if (gray) {
+                filters.push('colorchannelmixer=0.3:0.4:0.3:0:0.3:0.4:0.3:0:0.3:0.4:0.3');
+            }
+
             await ffmpeg([
                 '-i', src,
                 '-ss', '00:00:00',
-                '-vframes', '1',
-                // '-s', this.thumbnailSize,
-                '-vf', `scale=160:-2`,
-                '-q:v', '2',
+                '-frames:v', '1',
+                '-filter:v', filters.join(', '),
                 dest, '-y',
             ]);
 

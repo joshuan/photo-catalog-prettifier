@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'node:fs';
-import { joinPath, resolveByRoot } from '../../utils/path.js';
+import { getFolder } from '../../utils/data.js';
+import { joinPath, resolvePath } from '../../utils/path.js';
 import { Database } from '../../lib/Database/index.js';
 import { getTemplate } from '../../utils/template.js';
 
@@ -14,16 +15,17 @@ export async function groupController(req: Request, res: Response, next: NextFun
     }));
 }
 
-export function groupOperationController(req: Request, res: Response, next: NextFunction) {
+export async function groupOperationController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
     const operation = req.body.operation;
     const files = ((req.body?.files || []) as string[]).map(file => database.getFile(file));
 
     if (operation === 'delete') {
+        const trashFolder = await getFolder('trash');
         for (const file of files) {
             fs.renameSync(
                 joinPath(file.filepath),
-                resolveByRoot('database/trash', file.filename),
+                resolvePath(trashFolder, file.filename),
             );
             console.log(`- remove ${file.filepath}`);
         }

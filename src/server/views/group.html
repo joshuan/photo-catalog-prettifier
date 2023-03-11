@@ -25,6 +25,12 @@
             vertical-align: top;
             position: relative;
         }
+        td p {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            height: 1.2em;
+            overflow: hidden;
+        }
         img {
             height: 100px;
         }
@@ -53,9 +59,12 @@
         }
         .meta {
             margin: 0.4em;
-            padding-right: 1.5em;
-            float: right;
+            padding: 0 1.7em 0 0.3em;
             font-size: 0.8em;
+            position: absolute;
+            top: 4px;
+            right: 0;
+            background: white;
         }
         .delimiter {
             color: lightgray;
@@ -93,7 +102,7 @@
         <%= parseInt(itemIndex, 10) + 1 %>. <span class="delimiter">|</span>
         <%= item.id %> <span class="delimiter">|</span>
         <%= item.timestamp ? printDate(new Date(item.timestamp * 1000)) : '' %> <span class="delimiter">|</span>
-        &nbsp;⏰<%= equalArray(item.files || [], 'date') ? '✅' : '❌' %>
+        &nbsp;⏰<%= equalArray(item.files.map(id => ({ date: exifs[id].timestamp })) || [], 'date') ? '✅' : '❌' %>
         &nbsp;&nbsp;🛰<%= equalArray(item.files || [], 'gps') ? '✅' : '❌' %>
     </h2>
     <table><tr>
@@ -101,15 +110,15 @@
             <% const file = files[fileId]; %>
             <% const exif = exifs[fileId]; %>
             <% const preview = previews[fileId]; %>
-            <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>">
-                <span class="meta"><%= exif.compressor %></span>
-                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.filename %></b></p>
-                <p class="<%= file.timestamp !== item.timestamp ? 'wrong' : '' %>">Date: <%= file.timestamp ? printDate(new Date(file.timestamp * 1000)) : '' %></p>
+            <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>" title="<%= file.filename %>">
+                <p class="<%= exif.timestamp !== item.timestamp ? 'wrong' : '' %>">
+                    Date: <%= exif.timestamp ? printDate(new Date(exif.timestamp * 1000)) : '' %>
+                </p>
                 <p><%= exif._raw.ImageSize %> | <%= exif._raw.FileSize %> | <%= exif._raw.Duration %></p>
-                <% if (exif.gps) { %>
-                    <p>GPS: <%= exif.gps.lat %>, <%= exif.gps.lon %></p>
-                <% } %>
+                <p><% if (exif.gps) { %>GPS: <%= exif.gps.lat %>, <%= exif.gps.lon %><% } %></p>
+                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.filename %></b></p>
                 <img src="<%= preview.url %>" />
+                <div class="meta"><%= exif.compressor %></div>
                 <input type="checkbox" name="files[]" value="<%= file.FileName %>" id="<%= fileId %>"/>
                 <label for="<%= fileId %>" />
             </td>

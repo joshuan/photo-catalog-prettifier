@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { debugUtil } from '../utils/debug.js';
 import { readJson, writeJson } from '../utils/fs.js';
 import { resolveByRoot } from '../utils/path.js';
@@ -5,36 +6,40 @@ import { resolveByRoot } from '../utils/path.js';
 const debug = debugUtil('cache');
 
 export class Cache<T> {
-    private data: T | null = null;
-    private readonly name: string;
-    private readonly path: string;
+    constructor(private readonly table: string) {}
 
-    constructor(filename: string) {
-        debug('init', filename);
-        this.name = filename.replace(/[\s\.]/g, '_');
-        this.path = resolveByRoot('database', this.name);
+    private getPath(name: string) {
+        const dir = resolveByRoot(`data/database/${name}`);
+        const path = resolveByRoot(`data/database/${name}/${this.table}.json`);
+
+        try { fs.accessSync(dir, fs.constants.F_OK) } catch (err) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        return path;
     }
 
-    public async get(): Promise<T | null> {
-        if (this.data !== null) {
-            debug('get from memory');
-            return this.data;
-        }
+    public async has(name: string): Promise<any | null> {
+        const path = this.getPath(name);
 
         try {
-            debug('get from file');
-            this.data = await readJson<T>(this.name);
-
-            return this.data;
-        } catch (e) {
-            return null;
+            fs.accessSync(path, fs.constants.F_OK);
+        } catch (err) {
+            debug('has', this.table, name, false);
+            return false;
         }
+
+        debug('has', this.table, name, true);
+        return true;
     }
 
-    public async set(data: T) {
-        debug('set', typeof data);
-        this.data = data;
+    public async get(name: string): Promise<T> {
+        debug('get', this.table, name);
+        return await readJson<T>(this.getPath(name));
+    }
 
-        await writeJson(this.name, data);
+    public async set(name: string, data: T): Promise<void> {
+        debug('set', this.table, name);
+        await writeJson(this.getPath(name), data);
     }
 }

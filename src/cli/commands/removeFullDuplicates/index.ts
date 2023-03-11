@@ -3,6 +3,7 @@ import md5File from 'md5-file';
 import _ from 'lodash';
 import { buildFiles } from '../../../lib/Database/tables/file.js';
 import { deleteFile } from '../../../utils/fs.js';
+import { getBasename } from '../../../utils/path.js';
 
 export const command = 'removeFullDuplicates <path>';
 export const description = 'Find and remove all full duplicates (compare by hash from file)';
@@ -33,7 +34,8 @@ interface IPartData {
 
 export async function handler(argv: IRemoveFullDuplicatesArguments) {
     const ROOT = argv.path;
-    const list = await buildFiles(ROOT);
+    const name = getBasename(ROOT);
+    const list = await buildFiles(name, ROOT);
     const grouped = _.groupBy(list, 'md5');
 
     for (const md5 in grouped) {
