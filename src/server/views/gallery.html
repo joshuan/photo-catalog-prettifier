@@ -74,6 +74,7 @@
 
     return utcDate.toLocaleString('ru-RU', options);
 } %>
+
 <div class="list">
     <% let lastTime = 0 %>
     <% for (const event of events) { %>
@@ -84,14 +85,14 @@
                 </a>
             </h2>
             <% for (const item of event.items) { %>
-                <a href="/gallery/<%= item.id %>" class="item" id="<%= item.thumbnail %>" style="background-image: url('<%= item.thumbnail %>')">
+                <a href="/gallery/<%= item.id %>" class="item" id="<%= item.id %>" style="background-image: url('<%= item.preview %>')">
                     <span class="hover"></span>
                     <span class="labels">
                         <% if (item.type === 'video') { %><span class="type">🎬</span><% } %>
                         <% if (item.live) { %><span class="live">💡</span><% } %>
                         <% if (item.gps) { %><span class="gps">🛰</span><% } %>
                     </span>
-                    <span class="name"><%= item.files[0].FileName %></span>
+                    <span class="name"><%= item.files[0] %></span>
                 </a>
             <% } %>
             <div style="clear: both;"></div>
@@ -106,42 +107,39 @@
 <% const allItems = events.reduce((acc, event) => acc.concat(event.items), []).filter(i => i.gps); %>
 
 <script type="text/javascript">
-    const items = window.items = <%- JSON.stringify(allItems) %>;
-    ymaps.ready(init);
-    function init(){
-        var myMap = new ymaps.Map("map", {
+    const items = window.items = <%- JSON.stringify(allItems, null, 4) %>;
+    ymaps.ready(() => {
+        const map = new ymaps.Map("map", {
             center: [25.063383, 56.203139],
-            zoom: 7
+            zoom: 7,
         });
 
-        var myCollection = new ymaps.GeoObjectCollection();
+        const collection = new ymaps.GeoObjectCollection();
 
         for (const item of items) {
-            var str2 = new ymaps.Placemark(
+            const point = new ymaps.Placemark(
                 [item.gps.lat, item.gps.lon],
                 { iconCaption: item.FileName },
                 { preset: 'islands#blueCircleDotIconWithCaption' }
             );
-            str2.events.add('click', (e) => {
-                document.getElementById(item.thumbnail).scrollIntoView();
+
+            point.events.add('click', (e) => {
+                document.getElementById(item.id).scrollIntoView();
             });
 
-            myCollection.add(str2);
+            collection.add(point);
         }
 
-        myMap.geoObjects.add(myCollection);
-        myMap.setBounds(myCollection.getBounds());
+        map.geoObjects.add(collection);
+        map.setBounds(collection.getBounds());
 
-        var line1 = new ymaps.Polyline(
+        const line = new ymaps.Polyline(
             items.filter((item) => Boolean(item.gps)).map((item) => ([item.gps.lat, item.gps.lon])),
             {},
-            {
-                strokeWidth: 2,
-                strokeColor: "#e61b1b"
-            }
+            { strokeWidth: 2, strokeColor: "#e61b1b" }
         );
-        myMap.geoObjects.add(line1);
-    }
+        map.geoObjects.add(line);
+    });
 </script>
 
 </body>

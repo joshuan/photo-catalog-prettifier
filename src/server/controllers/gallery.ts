@@ -55,39 +55,38 @@ async function groupEvents(items: TCatalogItem[], hourInterval: number): Promise
     return results;
 }
 
-export function galleryController(req: Request, res: Response, next: NextFunction) {
+export async function galleryController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
     const data = database.getData();
     const items = database.getItems(buildFilterItemsByQuery(req.query));
-    const catalog = groupEvents(items, parseInt(req.query.interval as string || '0', 10));
+    const events = await groupEvents(items, parseInt(req.query.interval as string || '0', 10));
+    const template = await getTemplate('gallery');
 
-    getTemplate('gallery')
-        .then(template => {
-            res.send(template({
-                catalog,
-                data,
-            }));
-        })
-        .catch((err) => next(err));
+    res.send(template({
+        events,
+        data,
+    }));
 }
 
-export function galleryItemController(req: Request, res: Response, next: NextFunction) {
+export async function galleryItemController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
     const itemId = req.params.id;
     const data = database.getData();
 
-    getTemplate('gallery-item')
-        .then(template => {
-            const item = data.items.find(item => item.id === itemId);
+    const template = await getTemplate('gallery-item')
 
-            if (!item) {
-                throw new Error('Not found item', { cause: item });
-            }
+    const item = data.items.find(item => item.id === itemId);
 
-            res.send(template({
-                item,
-                data,
-            }));
-        })
-        .catch((err) => next(err));
+    if (!item) {
+        throw new Error('Not found item', { cause: itemId });
+    }
+
+    res.send(template({
+        item,
+        list: item.files.map(file => ({
+            file: data.files[file],
+            exif: data.exifs[file],
+            preview: data.previews[file],
+        })),
+    }));
 }

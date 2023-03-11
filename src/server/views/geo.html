@@ -23,69 +23,70 @@
 
 <div id="map"></div>
 
-<% items = items.filter((item) => item.type === 'video') %>
-
 <script type="text/javascript">
     const items = window.items = <%- JSON.stringify(items) %>;
-    // The ymaps.ready() function will be called when
-    // all the API components are loaded and the DOM tree is generated.
-    ymaps.ready(init);
-    function init(){
-        // Creating the map.
-        var myMap = new ymaps.Map("map", {
-            // The map center coordinates.
-            // Default order: “latitude, longitude”.
-            // To not manually determine the map center coordinates,
-            // use the Coordinate detection tool.
+    const data = window.data = <%- JSON.stringify(data) %>;
+
+    ymaps.ready(() => {
+        const map = new ymaps.Map("map", {
             center: [25.063383, 56.203139],
-            // Zoom level. Acceptable values:
-            // from 0 (the entire world) to 19.
             zoom: 7
         });
 
-        var myCollection = new ymaps.GeoObjectCollection();
+        const collection = new ymaps.GeoObjectCollection();
 
         for (const item of items) {
-            var str2 = new ymaps.Placemark(
+            const point = new ymaps.Placemark(
                 [item.gps.lat, item.gps.lon],
                 { iconCaption: item.FileName },
                 { preset: 'islands#blueCircleDotIconWithCaption' }
             );
-            str2.events.add('click', (e) => {
+
+            point.events.add('click', (e) => {
                 document.getElementById(item.thumbnail).scrollIntoView();
             });
 
-            myCollection.add(str2);
+            collection.add(point);
         }
 
-        myMap.geoObjects.add(myCollection);
-        myMap.setBounds(myCollection.getBounds());
+        map.geoObjects.add(collection);
+        map.setBounds(collection.getBounds());
 
-        var line1 = new ymaps.Polyline(
+        const line = new ymaps.Polyline(
             items.filter((item) => Boolean(item.gps)).map((item) => ([item.gps.lat, item.gps.lon])),
             {},
-            {
-                strokeWidth: 2,
-                strokeColor: "#e61b1b"
-            }
+            { strokeWidth: 2, strokeColor: "#e61b1b" }
         );
-        myMap.geoObjects.add(line1);
-    }
+        map.geoObjects.add(line);
+    });
 </script>
+
+<% function printDate(date) {
+    const utcDate = new Date(date.toUTCString()); // конвертирование даты в UTC
+    const options = { timeZone: process.env.TIMEZONE || 'UTC' }; // название часового пояса
+
+    return utcDate.toLocaleString('ru-RU', options);
+} %>
 
 <div class="list">
     <% for (const item of items) { %>
-        <div class="item" id="<%= item.thumbnail %>" style="clear: left;height:100px;margin-bottom: 0.5em;">
-            <img src="<%= item.thumbnail %>" style="float: left;margin-right: 1em;height:98px;" />
+        <div class="item" id="<%= item.id %>" style="clear: left;height:100px;margin-bottom: 0.5em;">
+            <img src="<%= item.preview %>" style="float: left;margin-right: 1em;height:98px;" />
             <p>
-                <b><%= item.files.map(file => file.FileName).join(', ') %></b>
+                <b><%= item.files.join(', ') %></b>
                 <br />
-                Date: <%= (item.date ? new Date(item.date * 1000) : new Date()).toISOString() %>
-                <br />
-                <%= item.files[0].exif.ImageSize %> | <%= item.files[0].exif.FileSize %> | <%= item.files[0].exif.Duration %>
-                <% if (item.gps) { %>
+                Date: <%= item.timestamp ? printDate(new Date(item.timestamp * 1000)) : 'wrong date' %>
+                <% const exif = data.exifs[item.files[0]]?._raw; %>
+                <% if (exif) { %>
                     <br />
-                    GPS: <%= item.gps.lat %>, <%= item.gps.lon %>
+                    <%= exif.ImageSize %> |
+                    <%= exif.FileSize %> |
+                    <%= exif.Duration %>
+
+                    <% if (exif.gps) { %>
+                        <br />
+                        GPS: <%= exif.gps.lat %>, <%= exif.gps.lon %>
+                    <% } %>
                 <% } %>
             </p>
         </div>

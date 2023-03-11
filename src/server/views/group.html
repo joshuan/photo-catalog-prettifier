@@ -92,23 +92,26 @@
     <h2>
         <%= parseInt(itemIndex, 10) + 1 %>. <span class="delimiter">|</span>
         <%= item.id %> <span class="delimiter">|</span>
-        <%= item.date ? printDate(new Date(item.date * 1000)) : '' %> <span class="delimiter">|</span>
-        &nbsp;⏰<%= equalArray(item.files, 'date') ? '✅' : '❌' %>
-        &nbsp;&nbsp;🛰<%= equalArray(item.files, 'gps') ? '✅' : '❌' %>
+        <%= item.timestamp ? printDate(new Date(item.timestamp * 1000)) : '' %> <span class="delimiter">|</span>
+        &nbsp;⏰<%= equalArray(item.files || [], 'date') ? '✅' : '❌' %>
+        &nbsp;&nbsp;🛰<%= equalArray(item.files || [], 'gps') ? '✅' : '❌' %>
     </h2>
     <table><tr>
-        <% for (const file of item.files) { %>
+        <% for (const fileId of item.files) { %>
+            <% const file = files[fileId]; %>
+            <% const exif = exifs[fileId]; %>
+            <% const preview = previews[fileId]; %>
             <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>">
-                <span class="meta"><%= file.exif.CompressorName %></span>
-                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.FileName %></b></p>
-                <p class="<%= file.date !== item.date ? 'wrong' : '' %>">Date: <%= file.date ? printDate(new Date(file.date * 1000)) : '' %></p>
-                <p><%= file.exif.ImageSize %> | <%= file.exif.FileSize %> | <%= file.exif.Duration %></p>
-                <% if (file.gps) { %>
-                    <p>GPS: <%= file.gps.lat %>, <%= file.gps.lon %></p>
+                <span class="meta"><%= exif.compressor %></span>
+                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.filename %></b></p>
+                <p class="<%= file.timestamp !== item.timestamp ? 'wrong' : '' %>">Date: <%= file.timestamp ? printDate(new Date(file.timestamp * 1000)) : '' %></p>
+                <p><%= exif._raw.ImageSize %> | <%= exif._raw.FileSize %> | <%= exif._raw.Duration %></p>
+                <% if (exif.gps) { %>
+                    <p>GPS: <%= exif.gps.lat %>, <%= exif.gps.lon %></p>
                 <% } %>
-                <img src="<%= file.thumbnailUrl %>" />
-                <input type="checkbox" name="files[]" value="<%= file.FileName %>" id="<%= file.FileName %>"/>
-                <label for="<%= file.FileName %>" />
+                <img src="<%= preview.url %>" />
+                <input type="checkbox" name="files[]" value="<%= file.FileName %>" id="<%= fileId %>"/>
+                <label for="<%= fileId %>" />
             </td>
         <% } %>
     </tr></table>

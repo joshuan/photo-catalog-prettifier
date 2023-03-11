@@ -4,17 +4,14 @@ import { joinPath, resolveByRoot } from '../../utils/path.js';
 import { Database } from '../../lib/Database/index.js';
 import { getTemplate } from '../../utils/template.js';
 
-export function groupController(req: Request, res: Response, next: NextFunction) {
+export async function groupController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
     const data = database.getData();
+    const template = await getTemplate('group');
 
-    getTemplate('group')
-        .then(template => {
-            res.send(template({
-                data,
-            }));
-        })
-        .catch((err) => next(err));
+    res.send(template({
+        ...data,
+    }));
 }
 
 export function groupOperationController(req: Request, res: Response, next: NextFunction) {

@@ -31,36 +31,18 @@ function calcMinTime(list: { timestamp: number; }[]): number {
     return roundFloorTime(list.reduce((acc, item) => item.timestamp < acc ? item.timestamp : acc, Date.now()));
 }
 
-function filterItemsByQuery(query: Request['query']) {
-    const min = parseInt(query.min as string || '0', 10);
-    const max = parseInt(query.max as string || '0', 10);
-    return function filterItems<T extends { date?: number; }>(items: T[]): T[] {
-        if (!min && !max) { return items; }
-        return items.filter(({ date }) => {
-            if (!date) { return false; }
-            if (min && date < min) { return false; }
-            if (max && date > max) { return false; }
-            return true;
-        });
-    }
-}
-
 function filterItems(items: TCatalogItem[]): (TCatalogItem & { timestamp: number })[] {
     return items
         .filter(item => Boolean(item.timestamp)) as (TCatalogItem & { timestamp: number })[];
 }
 
-export function timelineController(req: Request, res: Response, next: NextFunction) {
+export async function timelineController(req: Request, res: Response, next: NextFunction) {
     const database = req.app.get('database') as Database;
     const data = database.getData();
     const items = filterItems(database.getItems(buildFilterItemsByQuery(req.query)));
+    const maxTime = calcMaxTime(items);
+    const minTime = calcMinTime(items);
+    const template = await getTemplate('timeline');
 
-    getTemplate('timeline')
-        .then(template => {
-            const maxTime = calcMaxTime(items);
-            const minTime = calcMinTime(items);
-
-            res.send(template({ items, minTime, maxTime, data }));
-        })
-        .catch((err) => next(err));
+    res.send(template({ items, minTime, maxTime, data }));
 }

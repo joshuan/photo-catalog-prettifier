@@ -7,6 +7,7 @@ import { groupController, groupOperationController } from './controllers/group.j
 import { mainController } from './controllers/main.js';
 import { timelineController } from './controllers/timeline.js';
 import loggerMiddleware from './middlewares/logger.js';
+import { asyncController } from './utils/asyncController.js';
 
 export const buildApp = async function buildApp(path: string) {
     const app = express();
@@ -14,15 +15,15 @@ export const buildApp = async function buildApp(path: string) {
     app.use(loggerMiddleware);
     app.use(bodyParser.urlencoded());
 
-    app.get('/', mainController);
-    app.get('/groups', groupController);
-    app.post('/groups', groupOperationController);
-    app.get('/timeline', timelineController);
-    app.get('/gallery', galleryController);
-    app.get('/gallery/:id', galleryItemController);
-    app.get('/geo', geoController);
+    app.get('/', asyncController(mainController));
+    app.get('/groups', asyncController(groupController));
+    app.post('/groups', asyncController(groupOperationController));
+    app.get('/timeline', asyncController(timelineController));
+    app.get('/gallery', asyncController(galleryController));
+    app.get('/gallery/:id', asyncController(galleryItemController));
+    app.get('/geo', asyncController(geoController));
 
-    app.use('/thumbnails', express.static(resolveByRoot('database/thumbnails')));
+    app.use('/previews', express.static(resolveByRoot('database/previews')));
     app.use('/original', express.static(path));
 
     return app;

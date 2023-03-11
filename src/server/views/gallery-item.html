@@ -92,26 +92,28 @@
 } %>
 
 <div class="list">
-    <h2 class="header"><%= printDate(new Date(item.date * 1000)) %></h2>
-    <% if ( item.files[0].type === 'image' ) { %>
-        <img class="image" src="/original/<%= item.files[0].FileName %>" />
-    <% } else if (item.files[0].type === 'video') { %>
-        <video controls src="/original/<%= item.files[0].FileName %>" />
+    <h2 class="header"><%= printDate(new Date(item.timestamp * 1000)) %></h2>
+    <% if ( item.type === 'image' ) { %>
+        <img class="image" src="/original/<%= list[0].file.filename %>" />
+    <% } else if (item.type === 'video') { %>
+        <video controls src="/original/<%= list[0].file.filename %>" />
     <% } else { %>
         <p>Wrong type!</p>
     <% } %>
     <hr>
     <table><tr>
-        <% for (const file of item.files) { %>
+        <% for (const {file, exif, preview} of list) { %>
             <td class="<%= file.win ? 'winner' : '' %> <%= file.type %>">
-                <span class="meta"><%= file.exif.CompressorName %></span>
-                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.FileName %></b></p>
-                <p class="<%= file.date !== item.date ? 'wrong' : '' %>">Date: <%= file.date ? printDate(new Date(file.date * 1000)) : '' %></p>
-                <p><%= file.exif.ImageSize %> | <%= file.exif.FileSize %> | <%= file.exif.Duration %></p>
+                <span class="meta"><%= exif.compressor %></span>
+                <p><%= file.type === 'video' ? '🎬' : '' %><b><%= file.filename %></b></p>
+                <p class="<%= exif.timestamp !== item.timestamp ? 'wrong' : '' %>">
+                    Date: <%= exif.timestamp ? printDate(new Date(exif.timestamp * 1000)) : '' %>
+                </p>
+                <p><%= exif._raw.ImageSize %> | <%= exif._raw.FileSize %> | <%= exif._raw.Duration %></p>
                 <% if (file.gps) { %>
-                <p>GPS: <%= file.gps.lat %>, <%= file.gps.lon %></p>
+                <p>GPS: <%= exif.gps?.lat %>, <%= exif.gps?.lon %></p>
                 <% } %>
-                <img src="<%= file.thumbnailUrl %>" />
+                <img src="<%= preview.url %>" />
             </td>
         <% } %>
     </tr></table>

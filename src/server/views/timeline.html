@@ -72,10 +72,10 @@
 </div>
 <div class="list">
     <% for (const item of items) { %>
-        <% const time = item.date * 1000; %>
+        <% const time = item.timestamp * 1000; %>
         <div class="item" style="top: <%= printTop(time) %>px; left: <%= printLeft(time) %>%">
             <img
-                src="<%= item.thumbnail %>"
+                src="<%= item.preview %>"
                 title="<%= printDate(time) %> - <%= item.files.map((file) => file.FileName).join(', ') %>"
             />
             <div>
