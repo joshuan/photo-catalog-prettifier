@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'node:fs';
-import { getFolder } from '../../utils/data.js';
+import { getDataFolder, getFolder } from '../../utils/data.js';
 import { joinPath, resolvePath } from '../../utils/path.js';
 import { Database } from '../../lib/Database/index.js';
 import { getTemplate } from '../../utils/template.js';
@@ -13,6 +13,7 @@ export async function groupController(req: Request, res: Response, next: NextFun
     res.send(template({
         ...data,
         select: Boolean(req.query.select),
+        minFiles: parseInt(req.query.limit as string || '1', 10),
     }));
 }
 
@@ -22,7 +23,7 @@ export async function groupOperationController(req: Request, res: Response, next
     const files = ((req.body?.files || []) as string[]).filter(Boolean).map(file => database.getFile(file));
 
     if (operation === 'delete') {
-        const trashFolder = await getFolder(`trash/${database.name}`);
+        const trashFolder = await getFolder(database.path, 'trash');
 
         for (const file of files) {
             fs.renameSync(

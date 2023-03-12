@@ -7,12 +7,24 @@ export interface IGroupFile {
     hash?: string;
 }
 
+const INDEX_RE = [
+    /^IMG_(\d{4})/,
+    /^IMGP(\d{4})/,
+    /^SAM_(\d{4})/,
+];
+
 function getFileIndex(filename: string): string {
     const originalFilename = getOriginalSourceFilename(filename);
 
-    return originalFilename.startsWith('IMG_') ?
-        originalFilename.substring(0, 8) :
-        originalFilename;
+    for (const RE of INDEX_RE) {
+        const test = RE.exec(originalFilename);
+
+        if (test !== null) {
+            return test[0];
+        }
+    }
+
+    return originalFilename;
 }
 
 interface IExtendedFile<T> {

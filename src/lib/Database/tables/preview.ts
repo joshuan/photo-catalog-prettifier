@@ -1,4 +1,4 @@
-import { getFolder } from '../../../utils/data.js';
+import { getDataFolder } from '../../../utils/data.js';
 import { joinPath } from '../../../utils/path.js';
 import { buildPreview } from '../../../utils/preview.js';
 import { pLimit } from '../../../utils/pLimit.js';
@@ -26,6 +26,7 @@ const cache = new Cache<IMediaPreviewsList>('previews');
 
 interface IMediaPreviewsOptions {
     useCache?: boolean;
+    regeneratePreviews?: boolean;
 }
 
 export async function buildPreviews<
@@ -39,13 +40,13 @@ export async function buildPreviews<
     },
     options: IMediaPreviewsOptions = {},
 ): Promise<IMediaPreviewsList> {
-    const { useCache = true } = options;
+    const { useCache = true, regeneratePreviews = false } = options;
 
     if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
 
-    const folder = await getFolder(`previews/${name}`);
+    const folder = await getDataFolder(`previews/${name}`);
     const previewsJob = [];
 
     for (const file of Object.values(files)) {
@@ -62,7 +63,7 @@ export async function buildPreviews<
             src: file.filepath,
             dest,
         }, {
-            overwrite: true,
+            overwrite: regeneratePreviews,
         }).then(() => ({
             filename: file.filename,
             previewPath: dest,

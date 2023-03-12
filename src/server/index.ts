@@ -13,7 +13,7 @@ initArguments()
     .then(([database, app]) => {
         app.set('database', database);
         app.listen(port, () => {
-            console.log(`Example app listening on port ${port}`);
+            console.log(`App was started: http://localhost:${port}/`);
         });
     })
     .catch(error => {

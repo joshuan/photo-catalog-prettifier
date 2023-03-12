@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
+import progress from 'cli-progress';
 import { compare } from '../../../utils/compare.js';
-import { getFolder } from '../../../utils/data.js';
+import { getDataFolder } from '../../../utils/data.js';
 import { getBasename, getExt, joinPath } from '../../../utils/path.js';
 import { pLimit } from '../../../utils/pLimit.js';
 import { buildPreview } from '../../../utils/preview.js';
@@ -54,6 +55,7 @@ const cache = new Cache<IMediaHashList>('hash');
 
 interface IMediaHashOptions {
     useCache?: boolean;
+    regenerateExample?: boolean;
 }
 
 export async function buildHash<
@@ -67,14 +69,14 @@ export async function buildHash<
     },
     options: IMediaHashOptions = {},
 ): Promise<IMediaHashList> {
-    const { useCache = true } = options;
+    const { useCache = true, regenerateExample = false } = options;
 
     if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
 
     const compareJobs = [];
-    const folder = await getFolder(`examples/${name}`);
+    const folder = await getDataFolder(`examples/${name}`);
 
     for (const file of Object.values(files)) {
         const exif = exifs[file.filename];
@@ -91,7 +93,7 @@ export async function buildHash<
             src: file.filepath,
             dest,
         }, {
-            overwrite: true,
+            overwrite: regenerateExample,
             size: EXAMPLE_SIZE,
             ratio: false,
             originalSize: exif.imageSize,
@@ -112,7 +114,17 @@ export async function buildHash<
         }
     }
 
-    const pairs = await pLimit(pairFiles.map(([first, second]) => (() => compareFiles(first, second))));
+    const bar = new progress.SingleBar({},progress.Presets.shades_classic);
+    bar.start(pairFiles.length, 0);
+
+    const pairs = await pLimit(pairFiles
+        .map(([first, second]) => (() => compareFiles(first, second).then(data => {
+            bar.increment();
+            return data;
+        })))
+    );
+
+    bar.stop();
 
     const result: IMediaHashList = {
         data: {},

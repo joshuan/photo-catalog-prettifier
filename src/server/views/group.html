@@ -110,6 +110,7 @@
 <form action="/groups" method="post">
 <% for (const itemIndex in items) { %>
     <% const item = items[itemIndex] %>
+    <% if ( item.files.length < minFiles ) { continue; } %>
     <h2>
         <%= parseInt(itemIndex, 10) + 1 %>. <span class="delimiter">|</span>
         <%= item.id %> <span class="delimiter">|</span>
