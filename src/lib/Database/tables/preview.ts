@@ -1,3 +1,4 @@
+import progress from 'cli-progress';
 import { getDataFolder } from '../../../utils/data.js';
 import { joinPath } from '../../../utils/path.js';
 import { buildPreview } from '../../../utils/preview.js';
@@ -47,9 +48,16 @@ export async function buildPreviews<
     }
 
     const folder = await getDataFolder(`previews/${name}`);
+    const filesList = Object.values(files);
     const previewsJob = [];
 
-    for (const file of Object.values(files)) {
+    const bar = new progress.SingleBar({
+        format: 'Previews [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}',
+        etaBuffer: 1000,
+    });
+    bar.start(filesList.length, 0);
+
+    for (const file of filesList) {
         const exif = exifs[file.filename];
 
         if (!exif) {
@@ -57,21 +65,29 @@ export async function buildPreviews<
         }
 
         const dest = joinPath(folder, file.previewFilename);
-
-        previewsJob.push(() => buildPreview({
+        const previewSrc = {
             type: exif.type,
             src: file.filepath,
             dest,
-        }, {
+        };
+        const previewOptions = {
             overwrite: regeneratePreviews,
-        }).then(() => ({
+        };
+        const result = {
             filename: file.filename,
             previewPath: dest,
             previewUrl: `/previews/${name}/${file.previewFilename}`,
-        })));
+        };
+
+        previewsJob.push(() => buildPreview(previewSrc, previewOptions).then(() => {
+            bar.increment();
+            return result;
+        }));
     }
 
     const data = await pLimit(previewsJob);
+
+    bar.stop();
 
     const result = data.reduce((acc, item) => {
         acc[item.filename] = {

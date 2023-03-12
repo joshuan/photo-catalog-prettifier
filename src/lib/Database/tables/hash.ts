@@ -17,8 +17,8 @@ interface CompareResult {
     compare: number;
 }
 
-const EXAMPLE_SIZE = 100; // Размер картинки - 100x100, 10000 пикселей
-const EXAMPLE_DIFF = 50;  // Кол-во пикселей, которые могут расходиться из исходных 10000 (0.5%)
+const EXAMPLE_SIZE = 60; // Размер картинки - 100x100, 10000 пикселей
+const EXAMPLE_DIFF = 30;  // Кол-во пикселей, которые могут расходиться из исходных 10000 (0.5%)
 const EXAMPLE_FUZZ = 10;  //
 
 async function compareFiles(first: CompareItem, second: CompareItem): Promise<CompareResult> {
@@ -75,10 +75,17 @@ export async function buildHash<
         return await cache.get(name);
     }
 
-    const compareJobs = [];
+    const exampleJsobs = [];
     const folder = await getDataFolder(`examples/${name}`);
+    const filesList = Object.values(files);
 
-    for (const file of Object.values(files)) {
+    const bar1 = new progress.SingleBar({
+        format: 'Examples [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}',
+        etaBuffer: 1000,
+    });
+    bar1.start(filesList.length, 0);
+
+    for (const file of filesList) {
         const exif = exifs[file.filename];
 
         if (!exif) {
@@ -87,25 +94,35 @@ export async function buildHash<
 
         const exampleFilename = buildExampleFilename(file.filename);
         const dest = joinPath(folder, exampleFilename);
-
-        compareJobs.push(() => buildPreview({
+        const previewSrc = {
             type: exif.type,
             src: file.filepath,
             dest,
-        }, {
+        };
+        const previewOptions = {
             overwrite: regenerateExample,
             size: EXAMPLE_SIZE,
             ratio: false,
             originalSize: exif.imageSize,
             gray: true,
-        }).then(() => ({
+        };
+        const result = {
             filename: file.filename,
             exampleFilename,
             examplePath: dest,
-        })));
+        };
+
+        exampleJsobs.push(() => buildPreview(previewSrc, previewOptions)
+            .then(() => {
+                bar1.increment();
+                return result;
+            })
+        );
     }
 
-    const examples = await pLimit(compareJobs);
+    const examples = await pLimit(exampleJsobs);
+    bar1.stop();
+
     const pairFiles = [];
 
     for (let i = 0 ; i < examples.length ; i++) {
@@ -114,17 +131,20 @@ export async function buildHash<
         }
     }
 
-    const bar = new progress.SingleBar({},progress.Presets.shades_classic);
-    bar.start(pairFiles.length, 0);
+    const bar2 = new progress.SingleBar({
+        format: 'Compare [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}',
+        etaBuffer: 1000,
+    });
+    bar2.start(pairFiles.length, 0);
 
     const pairs = await pLimit(pairFiles
         .map(([first, second]) => (() => compareFiles(first, second).then(data => {
-            bar.increment();
+            bar2.increment();
             return data;
         })))
     );
 
-    bar.stop();
+    bar2.stop();
 
     const result: IMediaHashList = {
         data: {},
