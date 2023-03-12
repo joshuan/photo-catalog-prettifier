@@ -26,10 +26,8 @@ export class Database {
         const { useFilesCache = true, useExifCache = true, usePreviewsCache = true, useHashCache = true, useItemsCache = true } = options;
 
         const name = getBasename(path);
-        const [files, exifs] = await Promise.all([
-            buildFiles(name, path, { useCache: useFilesCache }),
-            buildExif(name, path, { useCache: useExifCache }),
-        ]);
+        const files = await buildFiles(name, path, { useCache: useFilesCache });
+        const exifs = await buildExif(name, path, { useCache: useExifCache });
         const previews = await buildPreviews(name, { files, exifs }, { useCache: usePreviewsCache });
         const hash = await buildHash(name, { files, exifs }, { useCache: useHashCache });
         const items = await buildItems(name, { files, exifs, previews, hash }, { useCache: useItemsCache });

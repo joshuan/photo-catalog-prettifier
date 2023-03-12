@@ -56,12 +56,6 @@ export async function buildPreviews<
     const filesList = Object.values(files);
     const previewsJob = [];
 
-    const bar = new progress.SingleBar({
-        format: 'Previews [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}',
-        etaBuffer: 1000,
-    });
-    bar.start(filesList.length, 0);
-
     for (const file of filesList) {
         const exif = exifs[file.filename];
 
@@ -84,15 +78,13 @@ export async function buildPreviews<
             previewUrl: `/previews/${name}/${file.previewFilename}`,
         };
 
-        previewsJob.push(() => buildPreview(previewSrc, previewOptions).then(() => {
-            bar.increment();
-            return result;
-        }));
+        previewsJob.push(() => buildPreview(previewSrc, previewOptions).then(() => result));
     }
 
-    const data = await pLimit(previewsJob);
-
-    bar.stop();
+    const data = await pLimit(
+        previewsJob,
+        { bar: 'Previews' },
+    );
 
     const result = data.reduce((acc, item) => {
         acc[item.filename] = {

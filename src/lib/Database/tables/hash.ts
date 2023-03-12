@@ -1,5 +1,4 @@
 import { v4 as uuid } from 'uuid';
-import progress from 'cli-progress';
 import { config } from '../../../config.js';
 import { compare } from '../../../utils/compare.js';
 import { getDataFolder } from '../../../utils/data.js';
@@ -77,15 +76,9 @@ export async function buildHash<
 
     debug('Start build hash data');
 
-    const exampleJsobs = [];
+    const exampleJobs = [];
     const folder = await getDataFolder(`examples/${name}`);
     const filesList = Object.values(files);
-
-    const bar1 = new progress.SingleBar({
-        format: 'Examples [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}',
-        etaBuffer: 1000,
-    });
-    bar1.start(filesList.length, 0);
 
     for (const file of filesList) {
         const exif = exifs[file.filename];
@@ -114,16 +107,10 @@ export async function buildHash<
             examplePath: dest,
         };
 
-        exampleJsobs.push(() => buildPreview(previewSrc, previewOptions)
-            .then(() => {
-                bar1.increment();
-                return result;
-            })
-        );
+        exampleJobs.push(() => buildPreview(previewSrc, previewOptions).then(() => result));
     }
 
-    const examples = await pLimit(exampleJsobs);
-    bar1.stop();
+    const examples = await pLimit(exampleJobs, { bar: 'Examples' });
 
     const pairFiles = [];
 
@@ -133,20 +120,10 @@ export async function buildHash<
         }
     }
 
-    const bar2 = new progress.SingleBar({
-        format: 'Compare [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}',
-        etaBuffer: 1000,
-    });
-    bar2.start(pairFiles.length, 0);
-
-    const pairs = await pLimit(pairFiles
-        .map(([first, second]) => (() => compareFiles(first, second).then(data => {
-            bar2.increment();
-            return data;
-        })))
+    const pairs = await pLimit(
+        pairFiles.map(([first, second]) => (() => compareFiles(first, second))),
+        { bar: 'Compare' },
     );
-
-    bar2.stop();
 
     const result: IMediaHashList = {
         data: {},

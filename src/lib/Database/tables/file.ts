@@ -3,6 +3,7 @@ import { debugUtil } from '../../../utils/debug.js';
 import { getOriginalSourceFilename } from '../../../utils/filename.js';
 import { fileStat, readDir } from '../../../utils/fs.js';
 import { getBasename, getExt, joinPath, resolvePath } from '../../../utils/path.js';
+import { pLimit } from '../../../utils/pLimit.js';
 import { Cache } from '../../Cache.js';
 
 export type IMediaFilesItem = {
@@ -34,6 +35,34 @@ interface IMediaFilesOptions {
     useCache?: boolean;
 }
 
+async function buildFile(folder: string, filename: string): Promise<IMediaFilesItem | void> {
+    if (filename.startsWith('.')) {
+        return;
+    }
+
+    const filepath = joinPath(folder, filename);
+    const stats = await fileStat(filepath);
+
+    if (!stats.isFile()) {
+        return;
+    }
+
+    const md5 = await md5File(filepath);
+    const ext = getExt(filename);
+
+    return {
+        filename,
+        filepath,
+        directory: folder,
+        basename: getBasename(filename, ext),
+        originalName: getOriginalSourceFilename(filename),
+        previewFilename: buildPreviewFilename(filename),
+        ext,
+        size: stats.size,
+        md5,
+    };
+}
+
 export async function buildFiles(name: string, path: string, options: IMediaFilesOptions = {}): Promise<IMediaFilesList> {
     const { useCache = true } = options;
 
@@ -44,27 +73,19 @@ export async function buildFiles(name: string, path: string, options: IMediaFile
     debug('Start build file data');
 
     const root = resolvePath(path);
-    const list = await Promise.all(readDir(root)
-        .filter(filename => !filename.startsWith('.'))
-        .map(filename => ({ filename, filepath: joinPath(root, filename) })));
-    const stats = await Promise.all(list
-        .map(item => fileStat(item.filepath).then(stats => ({ ...item, stats }))));
-    const md5list = await Promise.all(stats
-        .filter(({ stats }) => stats.isFile())
-        .map(item => md5File(item.filepath).then(md5 => ({ ...item, md5 }))));
 
-    const result = md5list.reduce((acc, { stats, ...item }) => {
-        const ext = getExt(item.filename);
+    const allFiles = await readDir(root);
 
-        acc[item.filename] = {
-            ...item,
-            directory: root,
-            basename: getBasename(item.filename, ext),
-            originalName: getOriginalSourceFilename(item.filename),
-            previewFilename: buildPreviewFilename(item.filename),
-            ext,
-            size: stats.size,
-        };
+    const files = await pLimit(
+        allFiles.map(filename => () => buildFile(root, filename)),
+        { bar: 'Files' },
+    );
+
+    const result = files.reduce((acc, item) => {
+        if (item) {
+            acc[item.filename] = item;
+        }
+
         return acc;
     }, {} as IMediaFilesList);
 
