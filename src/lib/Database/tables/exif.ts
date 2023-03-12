@@ -1,4 +1,5 @@
 import { v4 as uuid } from 'uuid';
+import { debugUtil } from '../../../utils/debug.js';
 import { buildDate } from '../../../utils/exifdate/index.js';
 import { exiftoolGetter, IExifPartialData } from '../../../utils/exiftool.js';
 import { buildGps, IGps } from '../../../utils/gps.js';
@@ -17,6 +18,8 @@ export type IMediaExifItem = {
 };
 
 export type IMediaExifList = Record<string, IMediaExifItem>;
+
+const debug = debugUtil('database:exif');
 
 function buildType(MIMEType: string): 'video' | 'image' {
     if (MIMEType.includes('image/')) { return 'image'; }
@@ -54,6 +57,8 @@ export async function buildExif(name: string, path: string, options: IMediaExifO
         return await cache.get(name);
     }
 
+    debug('Start build exif data');
+
     const data = await exiftoolGetter(path);
 
     const result = data.reduce((acc, exif) => {
@@ -79,6 +84,8 @@ export async function buildExif(name: string, path: string, options: IMediaExifO
     }, {} as IMediaExifList);
 
     await cache.set(name, result);
+
+    debug('Finish build exif data');
 
     return result;
 }

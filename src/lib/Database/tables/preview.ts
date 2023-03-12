@@ -1,5 +1,6 @@
 import progress from 'cli-progress';
 import { getDataFolder } from '../../../utils/data.js';
+import { debugUtil } from '../../../utils/debug.js';
 import { joinPath } from '../../../utils/path.js';
 import { buildPreview } from '../../../utils/preview.js';
 import { pLimit } from '../../../utils/pLimit.js';
@@ -22,6 +23,8 @@ interface IMediaThumbnailsFile {
 interface IMediaThumbnailsExif {
     type: 'image' | 'video';
 }
+
+const debug = debugUtil('database:preview');
 
 const cache = new Cache<IMediaPreviewsList>('previews');
 
@@ -46,6 +49,8 @@ export async function buildPreviews<
     if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
+
+    debug('Start build previews');
 
     const folder = await getDataFolder(`previews/${name}`);
     const filesList = Object.values(files);
@@ -99,6 +104,8 @@ export async function buildPreviews<
     }, {} as IMediaPreviewsList);
 
     await cache.set(name, result);
+
+    debug('Finish build previews');
 
     return result;
 }

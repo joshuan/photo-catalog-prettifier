@@ -1,4 +1,5 @@
 import md5File from 'md5-file';
+import { debugUtil } from '../../../utils/debug.js';
 import { getOriginalSourceFilename } from '../../../utils/filename.js';
 import { fileStat, readDir } from '../../../utils/fs.js';
 import { getBasename, getExt, joinPath, resolvePath } from '../../../utils/path.js';
@@ -17,6 +18,8 @@ export type IMediaFilesItem = {
 };
 
 export type IMediaFilesList = Record<string, IMediaFilesItem>;
+
+const debug = debugUtil('database:file');
 
 function buildPreviewFilename(originalFilename: string): string {
     const originalExt = getExt(originalFilename);
@@ -37,6 +40,8 @@ export async function buildFiles(name: string, path: string, options: IMediaFile
     if (useCache && await cache.has(name)) {
         return await cache.get(name);
     }
+
+    debug('Start build file data');
 
     const root = resolvePath(path);
     const list = await Promise.all(readDir(root)
@@ -64,6 +69,8 @@ export async function buildFiles(name: string, path: string, options: IMediaFile
     }, {} as IMediaFilesList);
 
     await cache.set(name, result);
+
+    debug('Finish build file data');
 
     return result;
 }

@@ -1,7 +1,9 @@
 import { v4 as uuid } from 'uuid';
 import progress from 'cli-progress';
+import { config } from '../../../config.js';
 import { compare } from '../../../utils/compare.js';
 import { getDataFolder } from '../../../utils/data.js';
+import { debugUtil } from '../../../utils/debug.js';
 import { getBasename, getExt, joinPath } from '../../../utils/path.js';
 import { pLimit } from '../../../utils/pLimit.js';
 import { buildPreview } from '../../../utils/preview.js';
@@ -17,14 +19,12 @@ interface CompareResult {
     compare: number;
 }
 
-const EXAMPLE_SIZE = 60; // Размер картинки - 100x100, 10000 пикселей
-const EXAMPLE_DIFF = 30;  // Кол-во пикселей, которые могут расходиться из исходных 10000 (0.5%)
-const EXAMPLE_FUZZ = 10;  //
+const debug = debugUtil('database:hash');
 
 async function compareFiles(first: CompareItem, second: CompareItem): Promise<CompareResult> {
     return {
         files: [ first.filename, second.filename ],
-        compare: await compare([first.examplePath, second.examplePath], { fuzz: EXAMPLE_FUZZ }),
+        compare: await compare([first.examplePath, second.examplePath], { fuzz: config.hash.exampleFuzz }),
     };
 }
 
@@ -75,6 +75,8 @@ export async function buildHash<
         return await cache.get(name);
     }
 
+    debug('Start build hash data');
+
     const exampleJsobs = [];
     const folder = await getDataFolder(`examples/${name}`);
     const filesList = Object.values(files);
@@ -101,7 +103,7 @@ export async function buildHash<
         };
         const previewOptions = {
             overwrite: regenerateExample,
-            size: EXAMPLE_SIZE,
+            size: config.hash.exampleSize,
             ratio: false,
             originalSize: exif.imageSize,
             gray: true,
@@ -155,7 +157,7 @@ export async function buildHash<
         const first = files[0];
         const second = files[1];
 
-        if (compare < EXAMPLE_DIFF) {
+        if (compare < config.hash.exampleDiff) {
             if (typeof result.data[first] === 'undefined') {
                 const newUuid = uuid();
                 result.data[first] = newUuid;
@@ -167,6 +169,8 @@ export async function buildHash<
     }
 
     await cache.set(name, result);
+
+    debug('Finish build hash data');
 
     return result;
 }

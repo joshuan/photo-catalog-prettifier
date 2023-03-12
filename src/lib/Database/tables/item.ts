@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { debugUtil } from '../../../utils/debug.js';
 import { IGps } from '../../../utils/gps.js';
 import { groupFiles } from '../../../utils/group.js';
 import { sortImages, sortVideos } from '../../../utils/sort.js';
@@ -41,6 +42,8 @@ export type TCatalogItem = {
     live: false | { image: string; video: string };
     files: string[];
 };
+
+const debug = debugUtil('database:item');
 
 function sortFiles<
     F extends IMediaItemsFile,
@@ -116,6 +119,8 @@ export async function buildItems<
         return await cache.get(name);
     }
 
+    debug('Start build item data');
+
     const list = Object.values(files).map(file => ({
         file,
         exif: exifs[file.filename],
@@ -147,6 +152,8 @@ export async function buildItems<
     result.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
     await cache.set(name, result);
+
+    debug('Finish build item data');
 
     return result;
 }

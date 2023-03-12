@@ -30,10 +30,8 @@ export class Database {
             buildFiles(name, path, { useCache: useFilesCache }),
             buildExif(name, path, { useCache: useExifCache }),
         ]);
-        const [previews, hash] = await Promise.all([
-            buildPreviews(name, { files, exifs }, { useCache: usePreviewsCache }),
-            buildHash(name, { files, exifs }, { useCache: useHashCache }),
-        ]);
+        const previews = await buildPreviews(name, { files, exifs }, { useCache: usePreviewsCache });
+        const hash = await buildHash(name, { files, exifs }, { useCache: useHashCache });
         const items = await buildItems(name, { files, exifs, previews, hash }, { useCache: useItemsCache });
 
         return new Database(name, path, { files, exifs, previews, hash, items });
