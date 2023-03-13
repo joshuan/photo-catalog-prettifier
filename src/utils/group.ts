@@ -35,7 +35,7 @@ interface IExtendedFile<T> {
     fileIndex: string;
 }
 
-export function groupFiles<T extends IGroupFile>(list: T[]): Record<string, T[]> {
+export function groupFiles<T extends IGroupFile>(list: T[]): T[][] {
     const data = list.map<IExtendedFile<T>>((file) => ({
         src: file,
         id: file.file.filename,
@@ -84,7 +84,7 @@ export function groupFiles<T extends IGroupFile>(list: T[]): Record<string, T[]>
                 const index = relations.findIndex(relation => relation.includes(`${field}-${item[field]}`));
 
                 if (index == -1) {
-                    throw new Error('Can not found group!', { cause: { [field]: item[field] } });
+                    throw new Error('Can not found group!', { cause: item });
                 } else {
                     groups[index] = (groups[index] || []).concat([ item[ID_FIELD] ]);
                 }
@@ -92,7 +92,7 @@ export function groupFiles<T extends IGroupFile>(list: T[]): Record<string, T[]>
         }
     }
 
-    const result: Record<string, T[]> = {};
+    const result: T[][] = [];
 
     for (const groupIndex in groups) {
         const group = groups[groupIndex];
@@ -109,7 +109,7 @@ export function groupFiles<T extends IGroupFile>(list: T[]): Record<string, T[]>
             throw new Error('Broken group', { cause: group });
         }
 
-        result[items[0].file.filename] = items;
+        result.push(items);
     }
 
     return result;

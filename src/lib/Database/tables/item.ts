@@ -92,6 +92,29 @@ function selectLive<E extends IMediaItemsExif>(files: { file: { filename: string
     return false;
 }
 
+function buildCatalogItem<
+    F extends IMediaItemsFile,
+    E extends IMediaItemsExif,
+    P extends IMediaItemsPreview,
+    H extends IMediaItemsHash,
+>(group: TItem<F, E, P, H>[]): TCatalogItem {
+    const groupFiles = sortFiles(group);
+
+    if (groupFiles.length === 0) {
+        throw new Error('Empty group!');
+    }
+
+    return {
+        id: groupFiles[0].file.filename,
+        timestamp: selectDate(groupFiles),
+        gps: selectGps(groupFiles),
+        preview: selectPreview(groupFiles),
+        type: selectType(groupFiles),
+        live: selectLive(groupFiles),
+        files: groupFiles.map(file => file.file.filename),
+    };
+}
+
 const cache = new Cache<TCatalogItem[]>('items');
 
 interface IMediaItemsOptions {
@@ -127,27 +150,9 @@ export async function buildItems<
         preview: previews[file.filename],
         hash: hash.data[file.filename],
     }));
+
     const groups = groupFiles(list);
-
-    const result: TCatalogItem[] = [];
-
-    for (const groupId in groups) {
-        const groupFiles = sortFiles(groups[groupId]);
-
-        if (groupFiles.length === 0) {
-            throw new Error('Empty group!');
-        }
-
-        result.push({
-            id: groupId,
-            timestamp: selectDate(groupFiles),
-            gps: selectGps(groupFiles),
-            preview: selectPreview(groupFiles),
-            type: selectType(groupFiles),
-            live: selectLive(groupFiles),
-            files: groupFiles.map(file => file.file.filename),
-        });
-    }
+    const result = groups.map(buildCatalogItem);
 
     result.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 

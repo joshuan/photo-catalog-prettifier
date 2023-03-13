@@ -1,6 +1,8 @@
 import md5File from 'md5-file';
+import _ from 'lodash';
 import { debugUtil } from '../../../utils/debug.js';
 import { getOriginalSourceFilename } from '../../../utils/filename.js';
+import { filterTrue } from '../../../utils/filter.js';
 import { fileStat, readDir } from '../../../utils/fs.js';
 import { getBasename, getExt, joinPath, resolvePath } from '../../../utils/path.js';
 import { pLimit } from '../../../utils/pLimit.js';
@@ -73,21 +75,9 @@ export async function buildFiles(name: string, path: string, options: IMediaFile
     debug('Start build file data');
 
     const root = resolvePath(path);
-
     const allFiles = await readDir(root);
-
-    const files = await pLimit(
-        allFiles.map(filename => () => buildFile(root, filename)),
-        { bar: 'Files' },
-    );
-
-    const result = files.reduce((acc, item) => {
-        if (item) {
-            acc[item.filename] = item;
-        }
-
-        return acc;
-    }, {} as IMediaFilesList);
+    const files = await pLimit(allFiles.map(filename => () => buildFile(root, filename)), { bar: 'Files' });
+    const result = _.keyBy(filterTrue(files), 'filename');
 
     await cache.set(name, result);
 

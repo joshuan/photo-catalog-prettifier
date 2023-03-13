@@ -14,10 +14,10 @@ export function builder(yargs: any) {
 
 export async function handler(argv: any) {
     await Database.init(argv.path, {
-        useFilesCache: false,
-        useExifCache: false,
-        useHashCache: false,
-        usePreviewsCache: false,
-        useItemsCache: false,
+        useFilesCache: true,
+        useExifCache: true,
+        useHashCache: true,
+        usePreviewsCache: true,
+        useItemsCache: true,
     });
 }
