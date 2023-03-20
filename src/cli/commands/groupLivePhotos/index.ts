@@ -44,13 +44,13 @@ export async function handler(argv: IGroupLivePhotosArguments) {
     const database = await Database.init(ROOT);
     const data = database.getData();
 
-    for (const item of data.items) {
-        if (!item.live) {
+    for (const group of data.groups) {
+        if (!group.live) {
             continue;
         }
 
-        let image = data.files[item.live.image];
-        let video = data.files[item.live.video];
+        let image = data.files[group.live.image];
+        let video = data.files[group.live.video];
 
         const src = video.filename;
         const dest = calcRename(image.filename, video.filename, argv.suffix);

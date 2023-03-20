@@ -49,8 +49,8 @@
     </style>
 </head>
 <body>
-<% const interval = 60 * 20 /* 20 минут - интервал между метками */ %>
-<% const koef = 60 * 60 * 3; /* 3 часов - уложится в 1 экран */ %>
+<% const interval = 60 * 10 /* 10 минут - интервал между метками */ %>
+<% const koef = 60 * 60 * 1; /* 1 часов - уложится в 1 экран */ %>
 
 <% function printDate(time) {
     const utcDate = new Date(time); // конвертирование даты в UTC
@@ -81,7 +81,7 @@
             <div>
                 <%= printDate(time).substring(11, 20) %>
                 <br />
-                <%= item.files[0].FileName %>
+                <a href="/gallery/<%= item.id %>" target="_blank"><%= item.id %></a>
             </div>
         </div>
     <% } %>

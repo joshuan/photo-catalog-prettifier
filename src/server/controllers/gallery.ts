@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import { Database } from '../../lib/Database/index.js';
-import { TCatalogItem } from '../../lib/Database/tables/item.js';
+import { TCatalogGroup } from '../../lib/Database/tables/group.js';
 import { getTemplate } from '../../utils/template.js';
 import { buildFilterItemsByQuery } from '../utils/filter.js';
 
 interface IEventGallery {
     times: [number, number];
-    items: TCatalogItem[];
+    items: TCatalogGroup[];
 }
 
 const HOUR = 60 * 60;
 
-async function groupEvents(items: TCatalogItem[], hourInterval: number): Promise<IEventGallery[]> {
+async function groupEvents(items: TCatalogGroup[], hourInterval: number): Promise<IEventGallery[]> {
     const interval = (hourInterval || 6) * HOUR;
-    const withoutTimes: TCatalogItem[] = [];
+    const withoutTimes: TCatalogGroup[] = [];
     const timeSlots = [];
     let lastElement = -1;
     let lastTime = 0;
@@ -25,7 +25,7 @@ async function groupEvents(items: TCatalogItem[], hourInterval: number): Promise
             lastElement++;
             lastTime = item.timestamp;
             if (!timeSlots[lastElement]) {
-                timeSlots[lastElement] = [] as TCatalogItem[];
+                timeSlots[lastElement] = [] as TCatalogGroup[];
             }
             timeSlots[lastElement].push(item);
         } else {
@@ -75,7 +75,7 @@ export async function galleryItemController(req: Request, res: Response, next: N
 
     const template = await getTemplate('gallery-item')
 
-    const item = data.items.find(item => item.id === itemId);
+    const item = data.groups.find(group => group.id === itemId);
 
     if (!item) {
         throw new Error('Not found item', { cause: itemId });
@@ -83,10 +83,6 @@ export async function galleryItemController(req: Request, res: Response, next: N
 
     res.send(template({
         item,
-        list: item.files.map(file => ({
-            file: data.files[file],
-            exif: data.exifs[file],
-            preview: data.previews[file],
-        })),
+        list: item.files.map(file => data.files[file]),
     }));
 }

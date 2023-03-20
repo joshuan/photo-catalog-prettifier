@@ -33,7 +33,7 @@ export async function groupOperationController(req: Request, res: Response, next
             console.log(`- remove ${file.filepath}`);
         }
 
-        const newDatabase = await Database.init(database.path, { useFilesCache: false, useItemsCache: false });
+        const newDatabase = await Database.init(database.path, { useFilesCache: false });
 
         req.app.set('database', newDatabase);
 

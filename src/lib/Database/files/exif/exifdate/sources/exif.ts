@@ -1,5 +1,5 @@
-import { ColonDate, TimeZone } from '../../../lib/ColonDate.js';
-import { debugUtil } from '../../debug.js';
+import { ColonDate, TimeZone } from '../../../../../ColonDate.js';
+import { debugUtil } from '../../../../../../utils/debug.js';
 
 const debug = debugUtil('renameToDate:exif');
 const BROKEN_DATE = '0000:00:00 00:00:00';
@@ -16,6 +16,11 @@ const zoneMap: Record<string, TimeZone> = {
 };
 
 function parseZone(zone?: string): TimeZone {
+    // Broken timezone source
+    if (zone === '+01:22') {
+        return TimeZone.UTC;
+    }
+
     if (zone && !(zoneMap[zone])) {
         throw new Error(`Zone, what can we do with "${zone}"?!`, { cause: zone });
     }

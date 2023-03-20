@@ -1,11 +1,13 @@
 import { v4 as uuid } from 'uuid';
 import { config } from '../../../config.js';
 import { compare } from '../../../utils/compare.js';
+import { getCompared, onCompare } from '../../../utils/compareCache.js';
 import { getDataFolder } from '../../../utils/data.js';
 import { debugUtil } from '../../../utils/debug.js';
 import { getBasename, getExt, joinPath } from '../../../utils/path.js';
 import { pLimit } from '../../../utils/pLimit.js';
-import { buildPreview } from '../../../utils/preview.js';
+import { buildPreviewFile } from '../../../utils/preview.js';
+import { IType } from '../../../utils/type.js';
 import { Cache } from '../../Cache.js';
 
 interface CompareItem {
@@ -21,10 +23,20 @@ interface CompareResult {
 const debug = debugUtil('database:hash');
 
 async function compareFiles(first: CompareItem, second: CompareItem): Promise<CompareResult> {
-    return {
-        files: [ first.filename, second.filename ],
-        compare: await compare([first.examplePath, second.examplePath], { fuzz: config.hash.exampleFuzz }),
-    };
+    const filenames: [string, string] = [ first.filename, second.filename ];
+    const filepaths: [string, string] = [ first.examplePath, second.examplePath ];
+
+    const cache = getCompared(filepaths);
+
+    if (typeof cache !== 'undefined') {
+        return { files: filenames, compare: cache };
+    }
+
+    const result = await compare(filepaths, { fuzz: config.hash.exampleFuzz });
+
+    onCompare(filepaths, result);
+
+    return { files: filenames, compare: result };
 }
 
 export interface IMediaHashList {
@@ -35,12 +47,14 @@ export interface IMediaHashList {
 interface IMediaHashFile {
     filepath: string;
     filename: string;
-    directory: string;
-}
-
-interface IMediaHashExif {
-    type: 'image' | 'video';
-    imageSize: [number, number];
+    fileinfo: {
+        directory: string;
+    };
+    exif: {
+        type: IType;
+        mime: string;
+        imageSize: [number, number];
+    };
 }
 
 function buildExampleFilename(originalFilename: string): string {
@@ -59,12 +73,10 @@ interface IMediaHashOptions {
 
 export async function buildHash<
     F extends IMediaHashFile,
-    E extends IMediaHashExif,
 >(
     name: string,
-    { files, exifs }: {
+    { files }: {
         files: Record<string, F>,
-        exifs: Record<string, E>,
     },
     options: IMediaHashOptions = {},
 ): Promise<IMediaHashList> {
@@ -81,7 +93,7 @@ export async function buildHash<
     const filesList = Object.values(files);
 
     for (const file of filesList) {
-        const exif = exifs[file.filename];
+        const exif = file.exif;
 
         if (!exif) {
             throw new Error('Undefined exif', { cause: file.filename });
@@ -91,6 +103,7 @@ export async function buildHash<
         const dest = joinPath(folder, exampleFilename);
         const previewSrc = {
             type: exif.type,
+            mime: exif.mime,
             src: file.filepath,
             dest,
         };
@@ -107,7 +120,7 @@ export async function buildHash<
             examplePath: dest,
         };
 
-        exampleJobs.push(() => buildPreview(previewSrc, previewOptions).then(() => result));
+        exampleJobs.push(() => buildPreviewFile(previewSrc, previewOptions).then(() => result));
     }
 
     const examples = await pLimit(exampleJobs, { bar: 'Examples' });

@@ -1,9 +1,12 @@
 import _ from 'lodash';
-import { getOriginalSourceFilename } from './filename.js';
+import { getOriginalSourceFilename } from '../lib/Database/files/fileinfo/fields/originalName.js';
 
 export interface IGroupFile {
-    file: { filename: string; originalName: string; };
-    exif: { groupId: string; };
+    file: {
+        filename: string;
+        fileinfo: { originalName: string; }
+        exif: { groupId: string; };
+    };
     hash?: string;
 }
 
@@ -36,12 +39,12 @@ interface IExtendedFile<T> {
 }
 
 export function groupFiles<T extends IGroupFile>(list: T[]): T[][] {
-    const data = list.map<IExtendedFile<T>>((file) => ({
-        src: file,
-        id: file.file.filename,
-        groupId: file.exif.groupId,
-        compareHash: file.hash,
-        fileIndex: getFileIndex(file.file.originalName),
+    const data = list.map<IExtendedFile<T>>((item) => ({
+        src: item,
+        id: item.file.filename,
+        groupId: item.file.exif.groupId,
+        compareHash: item.hash,
+        fileIndex: getFileIndex(item.file.fileinfo.originalName),
     }));
 
     const ID_FIELD = 'id';

@@ -1,9 +1,9 @@
-import { Argv } from 'yargs';
 import md5File from 'md5-file';
+import { Argv } from 'yargs';
 import _ from 'lodash';
-import { buildFiles } from '../../../lib/Database/tables/file.js';
-import { deleteFile } from '../../../utils/fs.js';
-import { getBasename } from '../../../utils/path.js';
+import { deleteFile, readDir } from '../../../utils/fs.js';
+import { joinPath } from '../../../utils/path.js';
+import { pLimit } from '../../../utils/pLimit.js';
 
 export const command = 'removeFullDuplicates <path>';
 export const description = 'Find and remove all full duplicates (compare by hash from file)';
@@ -34,8 +34,18 @@ interface IPartData {
 
 export async function handler(argv: IRemoveFullDuplicatesArguments) {
     const ROOT = argv.path;
-    const name = getBasename(ROOT);
-    const list = await buildFiles(name, ROOT);
+    const allFiles = await readDir(ROOT);
+
+    const list = await pLimit(
+        allFiles
+            .filter(filename => !filename.startsWith('.') && !filename.includes('xmp'))
+            .map(filename => async () => ({
+                    filename,
+                    md5: await md5File(joinPath(ROOT, filename)),
+            })),
+        { bar: 'Files' },
+    );
+
     const grouped = _.groupBy(list, 'md5');
 
     for (const md5 in grouped) {

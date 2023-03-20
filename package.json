@@ -11,7 +11,7 @@
     "test:dev": "DEBUG={DEBUG:-'pcp:*'} jest src --watch",
     "validate": "tsc -p . --noEmit",
     "cli": "env $(cat .env | xargs) ts-node --esm src/cli/index.ts",
-    "buildData": "npm run cli buildData",
+    "buildData": "npm run cli -- buildData",
     "server": "env $(cat .env | xargs) ts-node --esm src/server/index.ts",
     "server:dev": "nodemon --watch \"src/**\" --ext \"ts\" --ignore \"src/**/*.test.ts\" --exec \"npm run server\"",
     "clear": "rm -rf data/*"
@@ -31,6 +31,7 @@
     "luxon": "3.2.1",
     "md5-file": "5.0.0",
     "p-limit": "4.0.0",
+    "phash-imagemagick": "1.0.1",
     "pino": "8.11.0",
     "pino-http": "8.3.3",
     "pino-pretty": "9.4.0",

@@ -4,6 +4,7 @@ import { isFileExist } from './fs.js';
 
 interface IPreview {
     type: 'image' | 'video';
+    mime: string;
     src: string;
     dest: string;
 }
@@ -16,9 +17,9 @@ interface IPreviewOptions {
     gray?: boolean;
 }
 
-export async function buildPreview(item: IPreview, options: IPreviewOptions = {}): Promise<void> {
+export async function buildPreviewFile(item: IPreview, options: IPreviewOptions = {}): Promise<void> {
     const { overwrite = true, ratio = true, size = 160, originalSize, gray = false } = options;
-    const { type, src, dest } = item;
+    const { type, mime, src, dest } = item;
 
     if (!overwrite && await isFileExist(dest)) {
         return;
@@ -42,7 +43,7 @@ export async function buildPreview(item: IPreview, options: IPreviewOptions = {}
             }
 
             await convert([
-                src,
+                mime.includes('gif') ? `${src}[0]` : src,
                 ...options,
                 dest,
             ]);

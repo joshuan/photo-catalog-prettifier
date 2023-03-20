@@ -25,6 +25,10 @@ export function getBasename(filename: string, ext?: string): string {
     return path.basename(filename, ext);
 }
 
+export function getDirpath(filepath: string): string {
+    return path.dirname(filepath);
+}
+
 export function getLowerExt(filename: string): string {
     return getExt(filename).toLowerCase();
 }

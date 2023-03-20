@@ -9,15 +9,23 @@ export function builder(yargs: any) {
             desc: 'Path to folder with photos',
             type: 'string',
         })
+        .positional('useCache', {
+            desc: 'Use cache',
+            type: 'boolean',
+            default: false,
+        })
+        .positional('overwritePreview', {
+            desc: 'Overwrite preview files',
+            type: 'boolean',
+            default: false,
+        })
     ;
 }
 
 export async function handler(argv: any) {
     await Database.init(argv.path, {
-        useFilesCache: true,
-        useExifCache: true,
-        useHashCache: true,
-        usePreviewsCache: true,
-        useItemsCache: true,
+        useFilesCache: argv.useCache,
+        useGroupsCache: argv.useCache,
+        overwritePreview: argv.overwritePreview,
     });
 }

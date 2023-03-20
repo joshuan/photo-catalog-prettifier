@@ -1,5 +1,5 @@
+import _ from 'lodash';
 import { Argv } from 'yargs';
-import { buildFiles } from '../../../lib/Database/tables/file.js';
 import { readDir, rename } from '../../../utils/fs.js';
 import { getBasename, getExt } from '../../../utils/path.js';
 
@@ -48,15 +48,15 @@ function trimSuffix(filename: string): string {
 
 export async function handler(argv: IRemoveCopyNamesArguments) {
     const ROOT = argv.path;
-    const name = getBasename(ROOT);
-    const list = await buildFiles(name, ROOT);
-    const filesWithSuffix = Object.keys(list).filter(isHasSuffix);
+    const list = await readDir(ROOT);
+    const exists = _.keyBy(list.map(filename => ({ filename })), 'filename');
+    const filesWithSuffix = list.filter(isHasSuffix);
 
     for (const filename of filesWithSuffix) {
         const dest = trimSuffix(filename);
 
         console.log(`- ${filename} -> ${dest}`);
-        if (list[dest]) {
+        if (exists[dest]) {
             console.log(`  ⚠️ file "${dest}" already exists, he was not renamed.`);
         } else {
             if (!argv.dryRun) {

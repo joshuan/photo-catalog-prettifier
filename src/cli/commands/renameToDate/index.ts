@@ -1,6 +1,6 @@
 import { Argv } from 'yargs';
 import { ColonDate } from '../../../lib/ColonDate.js';
-import { getOriginalSourceFilename } from '../../../utils/filename.js';
+import { getOriginalSourceFilename } from '../../../lib/Database/files/fileinfo/fields/originalName.js';
 import { rename } from '../../../utils/fs.js';
 import { Database } from '../../../lib/Database/index.js';
 
@@ -51,7 +51,7 @@ export async function handler(argv: RenameToDateArguments): Promise<void> {
 
     for (const id of Object.keys(data.files)) {
         const src = data.files[id].filepath;
-        const date = data.exifs[id].timestamp;
+        const date = data.files[id].exif.timestamp;
 
         if (!date) {
             continue;

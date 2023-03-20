@@ -1,38 +1,32 @@
+import _ from 'lodash';
 import { getBasename } from '../../utils/path.js';
-import { buildHash, IMediaHashList } from './tables/hash.js';
-import { buildExif, IMediaExifList } from './tables/exif.js';
-import { buildFiles, IMediaFilesList } from './tables/file.js';
-import { buildItems, TCatalogItem } from './tables/item.js';
-import { buildPreviews, IMediaPreviewsList } from './tables/preview.js';
+import { Cache } from '../Cache.js';
+import { buildFiles, IFile } from './files/index.js';
+import { buildGroups, IGroup } from './groups/index.js';
 
 interface TData {
-    files: IMediaFilesList;
-    exifs: IMediaExifList;
-    previews: IMediaPreviewsList;
-    hash: IMediaHashList;
-    items: TCatalogItem[];
+    files: Record<string, IFile>;
+    groups: IGroup[];
 }
 
 interface IDatabaseInitOptions {
     useFilesCache?: boolean;
-    useExifCache?: boolean;
-    usePreviewsCache?: boolean;
-    useHashCache?: boolean;
-    useItemsCache?: boolean;
+    useGroupsCache?: boolean;
+    overwritePreview?: boolean;
 }
 
 export class Database {
     static async init(path: string, options: IDatabaseInitOptions = {}): Promise<Database> {
-        const { useFilesCache = true, useExifCache = true, usePreviewsCache = true, useHashCache = true, useItemsCache = true } = options;
-
+        const { useFilesCache = true, useGroupsCache = true, overwritePreview = false } = options;
         const name = getBasename(path);
-        const files = await buildFiles(name, path, { useCache: useFilesCache });
-        const exifs = await buildExif(name, path, { useCache: useExifCache });
-        const previews = await buildPreviews(name, { files, exifs }, { useCache: usePreviewsCache });
-        const hash = await buildHash(name, { files, exifs }, { useCache: useHashCache });
-        const items = await buildItems(name, { files, exifs, previews, hash }, { useCache: useItemsCache });
 
-        return new Database(name, path, { files, exifs, previews, hash, items });
+        const files = await Cache.withCache(name, 'files', () => buildFiles(path, { overwritePreview }), { useCache: useFilesCache });
+        const groups = await Cache.withCache(name, 'groups', () => buildGroups(files), { useCache: useGroupsCache });
+
+        return new Database(name, path, {
+            files: _.keyBy(files, 'filepath'),
+            groups,
+        });
     }
 
     constructor(
@@ -53,7 +47,7 @@ export class Database {
         return this.data;
     }
 
-    public getItems(filter?: (item: TCatalogItem) => boolean) {
-        return filter ? this.data.items.filter(filter) : this.data.items;
+    public getItems(filter?: (item: IGroup) => boolean): IGroup[] {
+        return filter ? this.data.groups.filter(filter) : this.data.groups;
     }
 }
